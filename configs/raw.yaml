@@ -1,0 +1,36 @@
+# Pipeline: raw x,y,z coordinates with energy as CLUE weight.
+# Baseline — no embedding transformation applied.
+pipeline: raw
+
+data:
+  path: /path/to/data.root       # override with --data flag
+  format: root
+  tree: events                   # TTree name inside the ROOT file
+  branches: [rechit_x, rechit_y, rechit_z]
+  weight_branch: rechit_energy
+  max_events: 100
+
+clustering:
+  backend: auto                  # auto → gpu cuda > cpu openmp > cpu serial
+  density_radius: 1.5
+  min_density: 5.0
+  outlier_distance: null         # null → same as density_radius
+  seeding_distance: null
+  ppbin: 128
+  kernel:
+    type: flat
+    params: [0.5]
+  block_size: 1024
+  device_id: 0
+
+metrics:
+  truth_matching_threshold: 0.5  # min shared-energy fraction to call a match
+
+output:
+  dir: results/raw
+  save_arrays: true
+  save_plots: true
+  plot_format: pdf
+
+profiling:
+  nvtx: true   # emit NVTX ranges; zero overhead when not running under nsys/ncu

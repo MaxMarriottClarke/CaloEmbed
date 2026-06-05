@@ -1,0 +1,34 @@
+CLAUDE.md
+CLUEstering/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+
+# Data and large outputs
+*.csv
+*.root
+*.npy
+*.npz
+*.parquet
+
+# Results (keep structure, not outputs)
+results/**
+!results/.gitkeep
+
+# Nsight profiling outputs
+*.nsys-rep
+*.ncu-rep
+*.sqlite
+*.qdrep
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Editor
+.vscode/
+.idea/
