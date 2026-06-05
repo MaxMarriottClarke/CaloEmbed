@@ -83,7 +83,7 @@ def main(argv=None):
 
     transform = _get_transform(config.get("pipeline", "raw"))
 
-    # Extract CLUE params once — not inside the per-event loop
+    # Extract CLUE params once
     dc           = clue_cfg["dc"]
     rhoc         = clue_cfg["rhoc"]
     do           = clue_cfg.get("do")
