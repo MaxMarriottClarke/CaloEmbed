@@ -1,0 +1,50 @@
+# CaloEmbed conda environment
+# Clone pygnn (has torch 2.5, PyG, h5py, awkward, uproot) then add missing packages:
+#
+#   micromamba create -n caloembed --clone pygnn
+#   micromamba activate caloembed
+#   micromamba install -n caloembed -c conda-forge scikit-learn matplotlib tqdm pyyaml
+#   pip install umap-learn pytest h5py pyarrow
+#   pip install -e /vols/cms/mm1221/cms/CaloEmbed/CLUEstering/
+#   pip install -e /vols/cms/mm1221/cms/CaloEmbed/
+#
+# Preprocessing (ROOT → HDF5) must use system python3 — ROOT is compiled against
+# system Python 3.9 and cannot be imported from this env. See env.sh.
+#
+# This file documents the full intended package set for reproducibility.
+
+name: caloembed
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  # Core numerics
+  - numpy
+  - scipy
+  # Data / IO
+  - h5py
+  - pandas
+  - pyarrow
+  - pyyaml
+  - tqdm
+  # HEP data (uproot reads ROOT without needing ROOT itself)
+  - pip:
+    - uproot>=5
+    - awkward>=2
+  # ML
+  - scikit-learn
+  - matplotlib
+  - pip:
+    - umap-learn
+    - torch==2.5.0
+    - torch-geometric
+  # Dev
+  - pip:
+    - pytest
+    - pytest-cov
+    # Local packages — install after env creation
+    # pip install -e /path/to/CLUEstering/
+    # pip install -e /path/to/CaloEmbed/

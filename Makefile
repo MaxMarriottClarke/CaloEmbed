@@ -3,16 +3,17 @@
 # Nsight profiling targets require nsys / ncu to be on PATH.
 # On lxplus/CERN clusters: source /cvmfs/sft.cern.ch/lcg/... or module load cuda
 
-DATA    ?= /path/to/data.root
+DATA    ?= /vols/cms/mm1221/cms/Data/100k/hdf5
 CONFIG  ?= configs/raw.yaml
 OUTPUT  ?= results/raw
 BACKEND ?= auto
 
 .PHONY: install test run profile profile-kernels clean
 
-ROOT_DIR  ?= /vols/cms/mm1221/cms/Data/100k/root
-HDF5_DIR  ?= /vols/cms/mm1221/cms/Data/100k/hdf5
-JOBS      ?= 8
+ROOT_DIR      ?= /vols/cms/mm1221/cms/Data/100k/root
+HDF5_DIR      ?= /vols/cms/mm1221/cms/Data/100k/hdf5
+JOBS          ?= 32
+SYSTEM_PYTHON ?= /usr/bin/python3   # must have ROOT; not the micromamba env
 
 install:
 	pip install -e .
@@ -25,16 +26,24 @@ test-all:
 	PYTHONPATH=$(PWD) python3 -m pytest tests/ -v
 
 preprocess:
-	PYTHONPATH=$(PWD) python3 -m caloembed.scripts.preprocess_root \
+	PYTHONPATH=$(PWD) $(SYSTEM_PYTHON) -m caloembed.scripts.preprocess_root \
 		--input-dir $(ROOT_DIR) \
 		--output-dir $(HDF5_DIR) \
 		--jobs $(JOBS)
 
 preprocess-one:
-	PYTHONPATH=$(PWD) python3 -m caloembed.scripts.preprocess_root \
+	PYTHONPATH=$(PWD) $(SYSTEM_PYTHON) -m caloembed.scripts.preprocess_root \
 		--input $(ROOT_DIR)/histo_921.root \
 		--output $(HDF5_DIR)/histo_921.h5 \
 		--verbose
+
+preprocess-check:
+	@echo "ROOT files : $$(ls $(ROOT_DIR)/*.root 2>/dev/null | wc -l)"
+	@echo "HDF5 done  : $$(ls $(HDF5_DIR)/*.h5   2>/dev/null | wc -l)"
+	@echo "Remaining  : $$(comm -23 \
+		<(ls $(ROOT_DIR)/*.root | xargs -n1 basename | sed 's/.root/.h5/' | sort) \
+		<(ls $(HDF5_DIR)/*.h5   | xargs -n1 basename | sort) \
+		| wc -l)"
 
 run:
 	caloembed-run \

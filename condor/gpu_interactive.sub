@@ -1,0 +1,6 @@
+universe            = vanilla
+request_GPUs        = 1
+request_memory      = 8GB
++MaxRuntime         = 7200
+
+queue

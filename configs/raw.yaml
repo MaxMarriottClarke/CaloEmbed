@@ -1,36 +1,25 @@
 # Pipeline: raw x,y,z coordinates with energy as CLUE weight.
-# Baseline — no embedding transformation applied.
 pipeline: raw
 
 data:
-  path: /path/to/data.root       # override with --data flag
-  format: root
-  tree: events                   # TTree name inside the ROOT file
-  branches: [rechit_x, rechit_y, rechit_z]
-  weight_branch: rechit_energy
-  max_events: 100
+  dir: /vols/cms/mm1221/cms/Data/100k/hdf5
+  max_events: -1   # -1 = all events
+  max_files: -1    # -1 = all files
 
 clustering:
-  backend: auto                  # auto → gpu cuda > cpu openmp > cpu serial
-  density_radius: 1.5
-  min_density: 5.0
-  outlier_distance: null         # null → same as density_radius
-  seeding_distance: null
+  backend: auto    # auto → gpu cuda > cpu openmp > cpu serial
+  dc: 2.6125
+  rhoc: 4.4012
+  do: 5.1886
+  dm: 3.1692
   ppbin: 128
-  kernel:
-    type: flat
-    params: [0.5]
+  metric: weighted_chebyshev
+  metric_params: [1.0, 1.0, 0.55]   # [x, y, z] — down-weights z separation
   block_size: 1024
   device_id: 0
 
 metrics:
-  truth_matching_threshold: 0.5  # min shared-energy fraction to call a match
+  min_lc: 3        # minimum LCs per trackster to count as reconstructed
 
 output:
   dir: results/raw
-  save_arrays: true
-  save_plots: true
-  plot_format: pdf
-
-profiling:
-  nvtx: true   # emit NVTX ranges; zero overhead when not running under nsys/ncu
