@@ -1,29 +1,27 @@
 """Convert HGCal ROOT files (ticlDumper/simtrackstersCP) to HDF5.
 
-HDF5 layout per file (one file ≈ one input ROOT file, 100 events):
+HDF5 layout per file:
 
   /lc/
-    x, y, z, energy, eta, phi   float32 [N_lc_total]   — all LCs concatenated
-    offsets                      int64   [N_events + 1]  — CSR: event i → lc[off[i]:off[i+1]]
+    x, y, z, energy, eta, phi   float32 [N_lc_total]
+    offsets                      int64   [N_events + 1]
 
   /truth/
-    argmax_cp_idx    int32   [N_lc_total]   — local CP index (within event) with highest fraction
-    argmax_fraction  float32 [N_lc_total]   — that CP's fraction for this LC
+    argmax_cp_idx    int32   [N_lc_total]    local CP index (within event) with highest fraction
+    argmax_fraction  float32 [N_lc_total]    that CP's fraction for this LC
 
     # Full COO table of all (LC, CP) associations in each event
-    coo_lc_idx   int32   [N_edges_total]   — local LC index within event
-    coo_cp_idx   int32   [N_edges_total]   — local CP index within event
-    coo_fraction float32 [N_edges_total]   — energy fraction = 1 / multiplicity
-    coo_offsets  int64   [N_events + 1]    — edges for event i: coo_off[i]:coo_off[i+1]
+    coo_lc_idx   int32   [N_edges_total]    local LC index within event
+    coo_cp_idx   int32   [N_edges_total]    local CP index within event
+    coo_fraction float32 [N_edges_total]    energy fraction = 1 / multiplicity
+    coo_offsets  int64   [N_events + 1]     edges for event i: coo_off[i]:coo_off[i+1]
 
   /event/
     n_lc, n_cp                 int32   [N_events]
-    cp_raw_energy              float32 [N_cp_total]   — flat, concatenated across events
+    cp_raw_energy              float32 [N_cp_total]   
     cp_pdg_id                  int32   [N_cp_total]
     cp_offsets                 int64   [N_events + 1]
 
-All CP indices in argmax and COO are local to their event (0 … n_cp[i]-1).
-Look up a CP's energy/pdg via cp_raw_energy[cp_offsets[i] + local_cp_idx].
 
 Fraction convention:
   fraction[lc_j, cp_i] = 1 / vertices_multiplicity[cp_i][j]
@@ -32,32 +30,18 @@ Fraction convention:
 """
 
 from __future__ import annotations
-import math
 import subprocess
 import time
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
-
-
-# ── Coordinate helpers ────────────────────────────────────────────────────────
 
 def _eta_phi(x: np.ndarray, y: np.ndarray, z: np.ndarray):
     """Compute (eta, phi) from Cartesian coordinates."""
     r = np.sqrt(x**2 + y**2 + z**2)
-    r = np.where(r == 0.0, 1e-10, r)
-    cos_theta = np.clip(z / r, -1.0, 1.0)
-    theta = np.arccos(cos_theta)
-    # tan(theta/2) is 0 at theta=0 (forward beam); guard against log(0)
-    tan_half = np.tan(theta / 2.0)
-    tan_half = np.where(tan_half <= 0.0, 1e-10, tan_half)
-    eta = -np.log(tan_half).astype(np.float32)
+    eta = (-0.5 * np.log((r - z) / (r + z))).astype(np.float32)
     phi = np.arctan2(y, x).astype(np.float32)
     return eta, phi
-
-
-# ── Per-event processing ─────────────────────────────────────────────────────
 
 def process_event(tree, event_idx: int) -> dict:
     """Convert one TTree entry into numpy arrays.
@@ -85,9 +69,9 @@ def process_event(tree, event_idx: int) -> dict:
     coo_frac_parts: list[np.ndarray] = []
 
     for cp_i in range(n_cp):
-        # Convert ROOT std::vector<T> to numpy — one allocation per CP per feature
+        # Convert ROOT std::vector<T> to numpy, one allocation per CP per feature
         idxs  = np.array(tree.vertices_indexes[cp_i],    dtype=np.int32)
-        mults = np.array(tree.vertices_multiplicity[cp_i], dtype=np.float64)  # f64 for precision
+        mults = np.array(tree.vertices_multiplicity[cp_i], dtype=np.float64)  
         xs    = np.array(tree.vertices_x[cp_i],    dtype=np.float32)
         ys    = np.array(tree.vertices_y[cp_i],    dtype=np.float32)
         zs    = np.array(tree.vertices_z[cp_i],    dtype=np.float32)
@@ -95,7 +79,7 @@ def process_event(tree, event_idx: int) -> dict:
 
         fracs = (1.0 / mults).astype(np.float32)
 
-        # Fill LC coordinates — only on first encounter per LC index
+        # Fill LC coordinates 
         new_mask = ~lc_filled[idxs]
         new_idxs = idxs[new_mask]
         lc_x[new_idxs]      = xs[new_mask]
@@ -116,12 +100,11 @@ def process_event(tree, event_idx: int) -> dict:
         coo_frac_parts.append(fracs)
 
     # Drop noise LCs (not covered by any CP): ~0.003% of LCs, coordinates
-    # unavailable. Compact arrays to covered LCs only and remap COO indices.
-    n_unfilled = int(np.sum(~lc_filled))
-    covered = np.where(lc_filled)[0]          # global indices of covered LCs, sorted
+    covered = np.where(lc_filled)[0] 
     n_covered = len(covered)
+    n_unfilled = int(n_lc - n_covered)
 
-    # Remap global LC index → compact index (position in covered array)
+    # Remap global LC index to compact index 
     global_to_compact = np.full(n_lc, -1, dtype=np.int32)
     global_to_compact[covered] = np.arange(n_covered, dtype=np.int32)
 
@@ -163,7 +146,6 @@ def process_event(tree, event_idx: int) -> dict:
     }
 
 
-# ── File-level conversion ─────────────────────────────────────────────────────
 
 def convert_file(
     root_path: str | Path,
@@ -300,44 +282,3 @@ def convert_file(
     }
 
 
-# ── HDF5 reading helpers ──────────────────────────────────────────────────────
-
-def read_event(hdf5_path: str | Path, event_idx: int) -> dict:
-    """Read one event from a preprocessed HDF5 file.
-
-    Returns arrays in the same structure as process_event(), ready for
-    the clustering pipeline or PyTorch.
-    """
-    import h5py
-
-    with h5py.File(hdf5_path, "r") as hf:
-        ls = int(hf["lc/offsets"][event_idx])
-        le = int(hf["lc/offsets"][event_idx + 1])
-        cs = int(hf["event/cp_offsets"][event_idx])
-        ce = int(hf["event/cp_offsets"][event_idx + 1])
-        es = int(hf["truth/coo_offsets"][event_idx])
-        ee = int(hf["truth/coo_offsets"][event_idx + 1])
-
-        return {
-            "lc": {
-                "x":      hf["lc/x"][ls:le],
-                "y":      hf["lc/y"][ls:le],
-                "z":      hf["lc/z"][ls:le],
-                "energy": hf["lc/energy"][ls:le],
-                "eta":    hf["lc/eta"][ls:le],
-                "phi":    hf["lc/phi"][ls:le],
-            },
-            "truth": {
-                "argmax_cp_idx":   hf["truth/argmax_cp_idx"][ls:le],
-                "argmax_fraction": hf["truth/argmax_fraction"][ls:le],
-                "coo_lc_idx":      hf["truth/coo_lc_idx"][es:ee],
-                "coo_cp_idx":      hf["truth/coo_cp_idx"][es:ee],
-                "coo_fraction":    hf["truth/coo_fraction"][es:ee],
-            },
-            "event": {
-                "n_lc":          int(hf["event/n_lc"][event_idx]),
-                "n_cp":          int(hf["event/n_cp"][event_idx]),
-                "cp_pdg_id":     hf["event/cp_pdg_id"][cs:ce],
-                "cp_raw_energy": hf["event/cp_raw_energy"][cs:ce],
-            },
-        }
