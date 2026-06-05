@@ -53,7 +53,6 @@ def main(argv=None):
 
     args = parser.parse_args(argv)
 
-    # ── Single-file mode ────────────────────────────────────────────────────
     if args.input:
         root_path = Path(args.input)
         if args.output:
@@ -72,7 +71,6 @@ def main(argv=None):
         print(json.dumps(result, indent=2))
         return
 
-    # ── Batch mode ──────────────────────────────────────────────────────────
     input_dir = Path(args.input_dir)
     output_dir = Path(args.output_dir) if args.output_dir else input_dir
     output_dir.mkdir(parents=True, exist_ok=True)
