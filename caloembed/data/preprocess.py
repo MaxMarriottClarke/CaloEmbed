@@ -152,7 +152,6 @@ def convert_file(
     hdf5_path: str | Path,
     compression: str = "gzip",
     compression_opts: int = 1,
-    verbose: bool = False,
 ) -> dict:
     """Convert one ROOT file to one HDF5 file.
 
@@ -183,15 +182,7 @@ def convert_file(
         raise RuntimeError(f"TTree 'ticlDumper/simtrackstersCP' not found in {root_path}")
 
     n_events = tree.GetEntries()
-
-    # Collect all events in memory (100 events × ~1500 LCs ≈ a few MB)
-    events = []
-    for i in range(n_events):
-        ev = process_event(tree, i)
-        events.append(ev)
-        if verbose and (i + 1) % 10 == 0:
-            print(f"  Processed {i + 1}/{n_events} events")
-
+    events = [process_event(tree, i) for i in range(n_events)]
     f.Close()
 
     # Build flat arrays + CSR offsets
@@ -226,12 +217,9 @@ def convert_file(
     cp_raw_energy = _cat('event', 'cp_raw_energy')
     cp_pdg_id     = _cat('event', 'cp_pdg_id')
 
-    # Write HDF5
-    gz = dict(compression=compression,
-              compression_opts=compression_opts if compression == "gzip" else None,
-              shuffle=True)
-    if compression == "lzf":
-        gz = dict(compression="lzf", shuffle=True)
+    gz = {"compression": compression, "shuffle": True}
+    if compression == "gzip":
+        gz["compression_opts"] = compression_opts
 
     with h5py.File(hdf5_path, "w") as hf:
         # Metadata attributes

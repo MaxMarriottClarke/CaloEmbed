@@ -32,3 +32,5 @@ results/**
 # Editor
 .vscode/
 .idea/
+
+.pytest_cache/

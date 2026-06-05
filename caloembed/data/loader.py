@@ -7,7 +7,6 @@ Per-file strategy: load all flat arrays into numpy once (file is ~2 MB),
 close the HDF5 handle, then yield sliced views per event.
 """
 
-from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 

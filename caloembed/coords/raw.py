@@ -1,7 +1,7 @@
 """Raw coordinate passthrough — no transformation applied.
 
-Passes (x, y, z) coordinates and energy weights directly to CLUEstering.
-This is the baseline against which all embedding methods are compared.
+Baseline pipeline: passes x,y,z and energy weights directly to CLUEstering.
+CLUEstering makes its own contiguous copies internally, so no copy needed here.
 """
 
 import numpy as np
@@ -9,10 +9,4 @@ from caloembed.data.loader import EventData
 
 
 def transform(event: EventData) -> tuple[np.ndarray, np.ndarray]:
-    """Return coordinates and weights unchanged.
-
-    Returns:
-        coords:  (N, n_features) float32
-        weights: (N,) float32
-    """
-    return event.coords.copy(), event.weights.copy()
+    return event.coords, event.weights

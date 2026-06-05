@@ -1,6 +1,5 @@
 """CLUEstering wrapper with automatic GPU/CPU backend selection."""
 
-from __future__ import annotations
 from dataclasses import dataclass
 import numpy as np
 

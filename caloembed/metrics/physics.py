@@ -1,6 +1,5 @@
 """Per-event physics metrics for CLUE clustering output."""
 
-from __future__ import annotations
 import numpy as np
 
 

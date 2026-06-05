@@ -23,10 +23,10 @@ from pathlib import Path
 
 def _process_one(args_tuple):
     """Worker function for multiprocessing (must be top-level, picklable)."""
-    root_path, hdf5_path, compression, verbose = args_tuple
+    root_path, hdf5_path, compression = args_tuple
     from caloembed.data.preprocess import convert_file
     try:
-        result = convert_file(root_path, hdf5_path, compression=compression, verbose=verbose)
+        result = convert_file(root_path, hdf5_path, compression=compression)
         return {"status": "ok", **result}
     except Exception as e:
         return {"status": "error", "root_file": str(root_path), "error": str(e)}
@@ -49,7 +49,6 @@ def main(argv=None):
                         help="HDF5 compression filter (default: gzip)")
     parser.add_argument("--overwrite", action="store_true",
                         help="Re-convert files that already have an HDF5 output")
-    parser.add_argument("--verbose", "-v", action="store_true")
 
     args = parser.parse_args(argv)
 
@@ -66,8 +65,7 @@ def main(argv=None):
 
         print(f"Converting {root_path} → {hdf5_path}")
         from caloembed.data.preprocess import convert_file
-        result = convert_file(root_path, hdf5_path, compression=args.compression,
-                              verbose=args.verbose)
+        result = convert_file(root_path, hdf5_path, compression=args.compression)
         print(json.dumps(result, indent=2))
         return
 
@@ -86,7 +84,7 @@ def main(argv=None):
         if hf.exists() and not args.overwrite:
             print(f"Skip (exists): {hf.name}")
             continue
-        tasks.append((str(rf), str(hf), args.compression, False))
+        tasks.append((str(rf), str(hf), args.compression))
 
     if not tasks:
         print("All files already converted. Use --overwrite to re-run.")
