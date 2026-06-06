@@ -11,9 +11,9 @@ except ImportError:
     clue = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class ClueResult:
-    cluster_ids: np.ndarray   # (N,) int32; outliers == -1
+    cluster_ids: np.ndarray
     n_clusters: int
     n_outliers: int
     elapsed_ms: float
@@ -61,8 +61,8 @@ def run_clue(
     """Run CLUE clustering on one event.
 
     Args:
-        coords:        (N, n_dim) float32 — point coordinates
-        weights:       (N,) float32 — point weights (LC energies)
+        coords:        (N, n_dim) float32 
+        weights:       (N,) float32
         dc:            critical distance for local density calculation
         rhoc:          density threshold separating seeds from outliers
         do:            nearest-higher search radius; defaults to dc
