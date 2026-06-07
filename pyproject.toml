@@ -24,7 +24,8 @@ dependencies = [
 dev = ["pytest", "pytest-cov", "ruff"]
 
 [project.scripts]
-caloembed-run = "caloembed.scripts.run_pipeline:main"
+caloembed-run  = "caloembed.scripts.run_pipeline:main"
+caloembed-plot = "caloembed.scripts.plot_metrics:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -1,0 +1,21 @@
+# Plot config for caloembed-plot.
+# Add one entry per run under 'runs'. 'label' is optional — falls back to
+# the pipeline name stored in the summary.
+
+output_dir: plots/
+
+# CP energy axis for purity and efficiency plots
+energy_min: 20
+energy_max: 300
+n_energy_bins: 14
+
+# Total LC energy axis for number ratio (leave out to auto-range from data)
+# ratio_energy_min: 40
+# ratio_energy_max: 600
+n_ratio_bins: 14
+
+runs:
+  - summary: results/raw/summary.json
+    label: "Raw CLUE"
+  # - summary: results/normalised/summary.json
+  #   label: "Normalised"
