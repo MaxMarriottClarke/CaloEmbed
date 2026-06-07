@@ -9,7 +9,11 @@ produces the same answer.
 import numpy as np
 import pytest
 
-from caloembed.metrics.physics import compute_purity
+from caloembed.metrics.physics import (
+    compute_purity,
+    compute_efficiency,
+    compute_number_ratio,
+)
 
 
 def _reference_score(cluster_ids, weights, lc_cp_idx, n_cp, reco_id):
@@ -156,3 +160,153 @@ def test_matches_reference_formula():
     ref = _reference_score(cluster_ids, weights, lc_cp_idx, n_cp=3, reco_id=0)
 
     assert result["score"][0] == pytest.approx(ref, abs=1e-9)
+
+
+# ── efficiency ────────────────────────────────────────────────────────────────
+
+def test_efficiency_perfect():
+    # All 3 LCs belong to CP 0 and are in cluster 0.
+    # Every LC in CP 0 is captured by the matching reco object → efficiency = 1.
+    cluster_ids = np.array([0, 0, 0], dtype=np.int32)
+    weights     = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    lc_cp_idx   = np.array([0, 0, 0], dtype=np.int32)
+    cp_energies = np.array([10.0], dtype=np.float32)
+
+    purity = compute_purity(cluster_ids, weights, lc_cp_idx, cp_energies)
+    eff    = compute_efficiency(cluster_ids, weights, lc_cp_idx, cp_energies, purity)
+
+    assert len(eff["cp_idx"]) == 1
+    assert eff["efficiency"][0] == pytest.approx(1.0)
+    assert eff["shared_energy"][0] == pytest.approx(eff["total_lc_energy"][0])
+
+
+def test_efficiency_partial_due_to_outlier():
+    # 4 LCs all owned by CP 0. LC 3 is an outlier (not in any cluster).
+    # Cluster 0 captures LCs 0-2 (energy 3.0); LC 3 (energy 1.0) is missed.
+    # efficiency = 3 / 4 = 0.75.
+    cluster_ids = np.array([0, 0, 0, -1], dtype=np.int32)
+    weights     = np.array([1.0, 1.0, 1.0, 1.0], dtype=np.float32)
+    lc_cp_idx   = np.array([0, 0, 0, 0], dtype=np.int32)
+    cp_energies = np.array([10.0], dtype=np.float32)
+
+    purity = compute_purity(cluster_ids, weights, lc_cp_idx, cp_energies)
+    eff    = compute_efficiency(cluster_ids, weights, lc_cp_idx, cp_energies, purity)
+
+    assert eff["efficiency"][0] == pytest.approx(0.75)
+    assert eff["total_lc_energy"][0] == pytest.approx(4.0)
+    assert eff["shared_energy"][0]   == pytest.approx(3.0)
+
+
+def test_efficiency_zero_for_unmatched_cp():
+    # CP 0's LCs are in cluster 0 (valid). CP 1's LCs are all outliers.
+    # Cluster 0 correctly matches CP 0, so CP 1 has no reco pointing to it
+    # → CP 1 efficiency = 0.
+    cluster_ids = np.array([-1, -1, -1, 0, 0, 0], dtype=np.int32)
+    weights     = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0], dtype=np.float32)
+    lc_cp_idx   = np.array([1,   1,   1,   0,   0,   0  ], dtype=np.int32)
+    cp_energies = np.array([10.0, 10.0], dtype=np.float32)
+
+    purity = compute_purity(cluster_ids, weights, lc_cp_idx, cp_energies)
+    eff    = compute_efficiency(cluster_ids, weights, lc_cp_idx, cp_energies, purity)
+
+    assert len(eff["cp_idx"]) == 2
+    eff_by_cp = {int(eff["cp_idx"][i]): eff["efficiency"][i] for i in range(2)}
+    assert eff_by_cp[0] == pytest.approx(1.0)
+    assert eff_by_cp[1] == pytest.approx(0.0)
+
+
+def test_is_efficient_flag():
+    # 4 LCs for CP 0: 3 in cluster 0, 1 outlier → efficiency = 0.75.
+    # With default threshold 0.5: is_efficient = True.
+    # With threshold 0.8: is_efficient = False.
+    cluster_ids = np.array([0, 0, 0, -1], dtype=np.int32)
+    weights     = np.array([1.0, 1.0, 1.0, 1.0], dtype=np.float32)
+    lc_cp_idx   = np.array([0, 0, 0, 0], dtype=np.int32)
+    cp_energies = np.array([10.0], dtype=np.float32)
+
+    purity = compute_purity(cluster_ids, weights, lc_cp_idx, cp_energies)
+
+    eff_default = compute_efficiency(cluster_ids, weights, lc_cp_idx, cp_energies, purity)
+    assert eff_default["is_efficient"][0]   # 0.75 >= 0.5
+
+    eff_tight = compute_efficiency(cluster_ids, weights, lc_cp_idx, cp_energies, purity,
+                                   efficiency_threshold=0.8)
+    assert not eff_tight["is_efficient"][0]  # 0.75 < 0.8
+
+
+def test_is_efficient_threshold_boundary():
+    # Efficiency exactly at the threshold counts as efficient (>= is inclusive).
+    # 2 of 4 equal-weight LCs in the matching reco → efficiency = 0.5 exactly.
+    cluster_ids = np.array([0, 0, 0, -1, -1], dtype=np.int32)
+    weights     = np.array([1.0, 1.0, 1.0, 1.0, 1.0], dtype=np.float32)
+    lc_cp_idx   = np.array([0, 0, 0, 0, 0], dtype=np.int32)
+    cp_energies = np.array([10.0], dtype=np.float32)
+
+    # efficiency = 3/5 = 0.6; use threshold = 0.6 to test the boundary exactly.
+    purity = compute_purity(cluster_ids, weights, lc_cp_idx, cp_energies)
+    actual_efficiency = compute_efficiency(
+        cluster_ids, weights, lc_cp_idx, cp_energies, purity
+    )["efficiency"][0]
+
+    at = compute_efficiency(cluster_ids, weights, lc_cp_idx, cp_energies, purity,
+                            efficiency_threshold=actual_efficiency)
+    assert at["is_efficient"][0]   # at threshold → efficient (>=)
+
+    just_above = compute_efficiency(cluster_ids, weights, lc_cp_idx, cp_energies, purity,
+                                    efficiency_threshold=actual_efficiency + 1e-9)
+    assert not just_above["is_efficient"][0]   # just above → not efficient
+
+
+def test_efficiency_zero_when_all_clusters_filtered():
+    # All clusters have fewer than min_lc=3 LCs, so purity_result is empty.
+    # No reco objects survive → efficiency = 0 for all CPs.
+    cluster_ids = np.array([0, 0, 1, 1], dtype=np.int32)   # 2 LCs each, all filtered
+    weights     = np.array([1.0, 1.0, 1.0, 1.0], dtype=np.float32)
+    lc_cp_idx   = np.array([0, 0, 1, 1], dtype=np.int32)
+    cp_energies = np.array([10.0, 10.0], dtype=np.float32)
+
+    purity = compute_purity(cluster_ids, weights, lc_cp_idx, cp_energies)
+    eff    = compute_efficiency(cluster_ids, weights, lc_cp_idx, cp_energies, purity)
+
+    assert len(purity["reco_id"]) == 0
+    assert np.all(eff["efficiency"] == 0.0)
+
+
+# ── number ratio ──────────────────────────────────────────────────────────────
+
+def test_number_ratio_basic():
+    # 2 valid reco objects out of 5 simulated → ratio = 0.4.
+    purity_result = {"reco_id": np.array([0, 3], dtype=np.int32)}
+    nr = compute_number_ratio(purity_result, n_cp=5)
+
+    assert nr["n_reco"] == 2
+    assert nr["n_sim"]  == 5
+    assert nr["ratio"]  == pytest.approx(0.4)
+
+
+def test_number_ratio_no_valid_reco():
+    # All clusters filtered — n_reco = 0.
+    cluster_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    weights     = np.array([1.0, 1.0, 1.0, 1.0], dtype=np.float32)
+    lc_cp_idx   = np.array([0, 0, 1, 1], dtype=np.int32)
+    cp_energies = np.array([10.0, 10.0], dtype=np.float32)
+
+    purity = compute_purity(cluster_ids, weights, lc_cp_idx, cp_energies)
+    nr     = compute_number_ratio(purity, n_cp=2)
+
+    assert nr["n_reco"] == 0
+    assert nr["ratio"]  == pytest.approx(0.0)
+
+
+def test_number_ratio_consistent_with_purity():
+    # n_reco from number_ratio must equal the length of purity_result["reco_id"].
+    cluster_ids = np.array([0, 0, 0, 1, 1, 1], dtype=np.int32)
+    weights     = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0], dtype=np.float32)
+    lc_cp_idx   = np.array([0, 0, 0, 1, 1, 1], dtype=np.int32)
+    cp_energies = np.array([10.0, 10.0], dtype=np.float32)
+
+    purity = compute_purity(cluster_ids, weights, lc_cp_idx, cp_energies)
+    nr     = compute_number_ratio(purity, n_cp=len(cp_energies))
+
+    assert nr["n_reco"] == len(purity["reco_id"])
+    assert nr["n_sim"]  == 2

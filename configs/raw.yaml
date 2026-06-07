@@ -19,8 +19,9 @@ clustering:
   device_id: 0
 
 metrics:
-  min_lc: 3              # minimum LCs per trackster to count as reconstructed
-  purity_threshold: 0.2  # reco-to-sim score below which a match counts as "pure"
+  min_lc: 3                  # minimum LCs per trackster to count as reconstructed
+  purity_threshold: 0.2      # reco-to-sim score below which a match counts as "pure"
+  efficiency_threshold: 0.5  # shared/total LC energy at or above which a CP counts as "efficient"
 
 output:
   dir: results/raw

@@ -26,22 +26,53 @@ def available_backends() -> list[str]:
     return list(clue.backends)
 
 
-def _resolve_backend(requested: str) -> str:
+_BACKEND_PRIORITY = ["gpu cuda", "gpu hip", "cpu openmp", "cpu serial"]
+
+
+def probe_backend(requested: str = "auto", device_id: int = 0) -> str:
+    """Resolve and verify a backend once by running a tiny dummy job.
+
+    Call this once before the event loop. Pass the returned string as the
+    explicit backend to all subsequent run_clue calls so selection only
+    happens once per run.
+
+    For 'auto', tries backends in priority order and returns the first that
+    works. For an explicit name, verifies it is usable and returns it.
+
+    Raises RuntimeError if no working backend is found.
+    """
     if not _CLUE_AVAILABLE:
-        raise RuntimeError(
-            "CLUEstering is not installed. "
-            "Run: pip install -e CLUEstering/"
-        )
-    if requested != "auto":
-        if requested not in available_backends():
-            raise ValueError(
-                f"Backend '{requested}' not available. Available: {available_backends()}"
-            )
-        return requested
-    for backend in ["gpu cuda", "gpu hip", "cpu openmp", "cpu serial"]:
-        if backend in available_backends():
+        raise RuntimeError("CLUEstering is not installed. Run: pip install -e CLUEstering/")
+
+    chain = (
+        [b for b in _BACKEND_PRIORITY if b in available_backends()]
+        if requested == "auto"
+        else [requested]
+    )
+    if not chain:
+        raise RuntimeError("No compiled backends found.")
+    if requested != "auto" and requested not in available_backends():
+        raise ValueError(f"Backend '{requested}' not available. Available: {available_backends()}")
+
+    # 5-point dummy dataset — just enough to exercise the backend
+    dummy = [
+        np.array([0.0, 1.0, 2.0, 3.0, 4.0], dtype=np.float32),
+        np.array([0.0, 1.0, 2.0, 3.0, 4.0], dtype=np.float32),
+        np.ones(5, dtype=np.float32),
+    ]
+    for backend in chain:
+        try:
+            c = clue.clusterer(1.0, 1.0, None, None, 10)
+            c.choose_kernel("flat", [0.5])
+            c.read_data(dummy)
+            c.run_clue(backend=backend, block_size=1024, device_id=device_id)
             return backend
-    return "cpu serial"
+        except RuntimeError:
+            if requested != "auto":
+                raise
+            print(f"  [{backend}] not available at runtime, trying next backend...")
+
+    raise RuntimeError(f"No working backend found among: {chain}")
 
 
 def run_clue(
@@ -60,8 +91,12 @@ def run_clue(
 ) -> ClueResult:
     """Run CLUE clustering on one event.
 
+    For production use, resolve the backend once with probe_backend() before
+    the event loop and pass the result here as an explicit string, so backend
+    selection only happens once per run.
+
     Args:
-        coords:        (N, n_dim) float32 
+        coords:        (N, n_dim) float32
         weights:       (N,) float32
         dc:            critical distance for local density calculation
         rhoc:          density threshold separating seeds from outliers
@@ -71,29 +106,31 @@ def run_clue(
         metric:        'euclidean', 'manhattan', 'chebyshev',
                        'weighted_euclidean', 'weighted_chebyshev', 'periodic_euclidean'
         metric_params: per-dimension weights/periods for parameterised metrics
-        backend:       'auto', 'gpu cuda', 'gpu hip', 'cpu openmp', 'cpu serial'
+        backend:       resolved backend string from probe_backend(), or 'auto'
+                       to probe on every call (not recommended for loops)
         block_size:    CUDA thread block size
         device_id:     GPU device index
     """
-    selected = _resolve_backend(backend)
+    if not _CLUE_AVAILABLE:
+        raise RuntimeError("CLUEstering is not installed. Run: pip install -e CLUEstering/")
+
+    selected = probe_backend(backend, device_id) if backend == "auto" else backend
+
+    n_dim = coords.shape[1]
+    data = [np.ascontiguousarray(coords[:, i], dtype=np.float32) for i in range(n_dim)]
+    data.append(np.ascontiguousarray(weights, dtype=np.float32))
 
     c = clue.clusterer(dc, rhoc, do, dm, ppbin)
     c.choose_kernel("flat", [0.5])
     if metric != "euclidean":
         c.choose_metric(metric, metric_params)
-
-    n_dim = coords.shape[1]
-    data = [np.ascontiguousarray(coords[:, i], dtype=np.float32) for i in range(n_dim)]
-    data.append(np.ascontiguousarray(weights, dtype=np.float32))
     c.read_data(data)
-
     c.run_clue(backend=selected, block_size=block_size, device_id=device_id)
 
-    ids = c.cluster_ids.copy()
     return ClueResult(
-        cluster_ids=ids,
+        cluster_ids=c.cluster_ids.copy(),
         n_clusters=c.n_clusters,
-        n_outliers=int(np.sum(ids == -1)),
+        n_outliers=int(np.sum(c.cluster_ids == -1)),
         elapsed_ms=c._elapsed_time,
         backend=selected,
     )
