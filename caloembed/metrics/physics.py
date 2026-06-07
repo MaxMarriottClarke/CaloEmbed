@@ -10,7 +10,7 @@ def compute_purity(
     cp_energies: np.ndarray,
     min_lc: int = 3,
     score_threshold: float = 0.2,
-) -> list[dict]:
+) -> dict[str, np.ndarray]:
     """Compute the reco-to-sim purity score for each reconstructed object in one event.
 
     A reconstructed object is a non-outlier CLUE cluster with more than `min_lc - 1`
@@ -32,27 +32,35 @@ def compute_purity(
     best-matching simulated object) if that minimal score is below `score_threshold`.
 
     Args:
-        cluster_ids:    (N,) int32 from CLUE; outliers == -1
-        weights:        (N,) float32 LC energies
-        lc_cp_idx:      (N,) int32 local CaloParticle index each LC is assigned to
-        cp_energies:    (n_truth_cp,) float32 raw energy of each CaloParticle
-        min_lc:         minimum LCs for a CLUE cluster to count as a reconstructed object
+        cluster_ids:     (N,) int32 from CLUE; outliers == -1
+        weights:         (N,) float32 LC energies
+        lc_cp_idx:       (N,) int32 local CaloParticle index each LC is assigned to
+        cp_energies:     (n_truth_cp,) float32 raw energy of each CaloParticle
+        min_lc:          minimum LCs for a CLUE cluster to count as a reconstructed object
         score_threshold: reco-to-sim score below which a match is considered "pure"
 
     Returns:
-        One dict per reconstructed object with keys:
-        reco_id, n_lc, reco_energy, matched_cp_idx, matched_cp_energy, score, is_pure
+        Columnar dict with one entry per reconstructed object. Arrays are aligned:
+        index i refers to the same reco object across all keys.
+        Keys: reco_id, n_lc, reco_energy, matched_cp_idx, matched_cp_energy, score, is_pure
     """
     energy_sq = weights.astype(np.float64) ** 2
     n_cp = len(cp_energies)
 
-    objects = []
-    reco_ids, counts = np.unique(cluster_ids[cluster_ids >= 0], return_counts=True)
-    for reco_id, n_lc in zip(reco_ids, counts):
+    out_reco_id           = []
+    out_n_lc              = []
+    out_reco_energy       = []
+    out_matched_cp_idx    = []
+    out_matched_cp_energy = []
+    out_score             = []
+    out_is_pure           = []
+
+    uniq_ids, counts = np.unique(cluster_ids[cluster_ids >= 0], return_counts=True)
+    for reco_id, n_lc in zip(uniq_ids, counts):
         if n_lc < min_lc:
             continue
 
-        mask = (cluster_ids == reco_id)
+        mask = cluster_ids == reco_id
         e_sq = energy_sq[mask]
         total_e_sq = e_sq.sum()
 
@@ -60,14 +68,20 @@ def compute_purity(
         matched_cp_idx = int(np.argmax(overlap_per_cp))
         score = 1.0 - overlap_per_cp[matched_cp_idx] / total_e_sq
 
-        objects.append({
-            "reco_id":          int(reco_id),
-            "n_lc":             int(n_lc),
-            "reco_energy":      float(weights[mask].sum()),
-            "matched_cp_idx":   matched_cp_idx,
-            "matched_cp_energy": float(cp_energies[matched_cp_idx]),
-            "score":            float(score),
-            "is_pure":          bool(score < score_threshold),
-        })
+        out_reco_id.append(int(reco_id))
+        out_n_lc.append(int(n_lc))
+        out_reco_energy.append(float(weights[mask].sum()))
+        out_matched_cp_idx.append(matched_cp_idx)
+        out_matched_cp_energy.append(float(cp_energies[matched_cp_idx]))
+        out_score.append(score)
+        out_is_pure.append(score < score_threshold)
 
-    return objects
+    return {
+        "reco_id":           np.array(out_reco_id,           dtype=np.int32),
+        "n_lc":              np.array(out_n_lc,              dtype=np.int32),
+        "reco_energy":       np.array(out_reco_energy,       dtype=np.float64),
+        "matched_cp_idx":    np.array(out_matched_cp_idx,    dtype=np.int32),
+        "matched_cp_energy": np.array(out_matched_cp_energy, dtype=np.float64),
+        "score":             np.array(out_score,             dtype=np.float64),
+        "is_pure":           np.array(out_is_pure,           dtype=bool),
+    }
