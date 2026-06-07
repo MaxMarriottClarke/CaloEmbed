@@ -3,50 +3,71 @@
 import numpy as np
 
 
-def compute_event_metrics(
+def compute_purity(
     cluster_ids: np.ndarray,
     weights: np.ndarray,
-    n_truth_cp: int,
+    lc_cp_idx: np.ndarray,
+    cp_energies: np.ndarray,
     min_lc: int = 3,
-) -> dict:
-    """Compute basic physics metrics for one event.
+    score_threshold: float = 0.2,
+) -> list[dict]:
+    """Compute the reco-to-sim purity score for each reconstructed object in one event.
+
+    A reconstructed object is a non-outlier CLUE cluster with more than `min_lc - 1`
+    layer clusters (LCs). Each LC is taken to belong fully to the simulated object
+    (CaloParticle) that contributed the largest fraction of its energy, i.e.
+    `lc_cp_idx`.
+
+    For a reco object R and simulated object S, the reco-to-sim score is
+
+        score(R, S) = sum(E_lc^2 for lc in R, lc not in S) / sum(E_lc^2 for lc in R)
+
+    Since every LC belongs to exactly one S, this is equivalent to
+
+        score(R, S) = 1 - sum(E_lc^2 for lc in R and in S) / sum(E_lc^2 for lc in R)
+
+    so the S that minimises score(R, S) is simply the simulated object that owns the
+    largest share of R's energy^2 — found here via a single grouped reduction rather
+    than looping over every (R, S) pair. A reco object is "pure" (associated to its
+    best-matching simulated object) if that minimal score is below `score_threshold`.
 
     Args:
-        cluster_ids: (N,) int32 from CLUE; outliers == -1
-        weights:     (N,) float32 LC energies
-        n_truth_cp:  number of truth CaloParticles in this event
-        min_lc:      minimum LCs to count a trackster as reconstructed
+        cluster_ids:    (N,) int32 from CLUE; outliers == -1
+        weights:        (N,) float32 LC energies
+        lc_cp_idx:      (N,) int32 local CaloParticle index each LC is assigned to
+        cp_energies:    (n_truth_cp,) float32 raw energy of each CaloParticle
+        min_lc:         minimum LCs for a CLUE cluster to count as a reconstructed object
+        score_threshold: reco-to-sim score below which a match is considered "pure"
 
-    Returns dict with:
-        n_reco:                   tracksters with >= min_lc LCs
-        efficiency:               n_reco / n_truth_cp (can exceed 1 if CLUE over-clusters)
-        total_lc_energy:          sum of all LC energies
-        discarded_energy_fraction: energy not captured in valid tracksters
+    Returns:
+        One dict per reconstructed object with keys:
+        reco_id, n_lc, reco_energy, matched_cp_idx, matched_cp_energy, score, is_pure
     """
-    total_energy = float(np.sum(weights))
+    energy_sq = weights.astype(np.float64) ** 2
+    n_cp = len(cp_energies)
 
-    non_outlier_mask = cluster_ids >= 0
-    if not np.any(non_outlier_mask):
-        return {
-            "n_reco": 0,
-            "efficiency": 0.0,
-            "total_lc_energy": total_energy,
-            "discarded_energy_fraction": 1.0,
-        }
+    objects = []
+    reco_ids, counts = np.unique(cluster_ids[cluster_ids >= 0], return_counts=True)
+    for reco_id, n_lc in zip(reco_ids, counts):
+        if n_lc < min_lc:
+            continue
 
-    counts = np.bincount(cluster_ids[non_outlier_mask])
-    valid_ids = np.where(counts >= min_lc)[0]
-    n_reco = len(valid_ids)
+        mask = (cluster_ids == reco_id)
+        e_sq = energy_sq[mask]
+        total_e_sq = e_sq.sum()
 
-    in_valid = np.isin(cluster_ids, valid_ids)
-    reco_energy = float(np.sum(weights[in_valid]))
-    discarded_fraction = max(0.0, 1.0 - reco_energy / total_energy) if total_energy > 0 else 0.0
+        overlap_per_cp = np.bincount(lc_cp_idx[mask], weights=e_sq, minlength=n_cp)
+        matched_cp_idx = int(np.argmax(overlap_per_cp))
+        score = 1.0 - overlap_per_cp[matched_cp_idx] / total_e_sq
 
-    efficiency = n_reco / n_truth_cp if n_truth_cp > 0 else 0.0
+        objects.append({
+            "reco_id":          int(reco_id),
+            "n_lc":             int(n_lc),
+            "reco_energy":      float(weights[mask].sum()),
+            "matched_cp_idx":   matched_cp_idx,
+            "matched_cp_energy": float(cp_energies[matched_cp_idx]),
+            "score":            float(score),
+            "is_pure":          bool(score < score_threshold),
+        })
 
-    return {
-        "n_reco": n_reco,
-        "efficiency": efficiency,
-        "total_lc_energy": total_energy,
-        "discarded_energy_fraction": discarded_fraction,
-    }
+    return objects

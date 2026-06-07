@@ -20,7 +20,7 @@ import yaml
 
 from caloembed.data.loader import iter_hdf5_dir
 from caloembed.clustering.clue import run_clue, available_backends
-from caloembed.metrics.physics import compute_event_metrics
+from caloembed.metrics.physics import compute_purity
 
 
 _TRANSFORMS = {
@@ -80,6 +80,7 @@ def main(argv=None):
     data_cfg = config["data"]
     clue_cfg = config["clustering"]
     min_lc = config.get("metrics", {}).get("min_lc", 3)
+    score_threshold = config.get("metrics", {}).get("purity_threshold", 0.2)
 
     transform = _get_transform(config.get("pipeline", "raw"))
 
@@ -104,6 +105,7 @@ def main(argv=None):
     )
 
     rows = []
+    clue_times = []
     t_start = time.perf_counter()
 
     for i, event in enumerate(events):
@@ -116,53 +118,52 @@ def main(argv=None):
             backend=backend, block_size=block_size, device_id=device_id,
         )
 
-        m = compute_event_metrics(
+        objects = compute_purity(
             cluster_ids=result.cluster_ids,
             weights=weights,
-            n_truth_cp=event.n_truth_cp,
+            lc_cp_idx=event.lc_cp_idx,
+            cp_energies=event.cp_energies,
             min_lc=min_lc,
+            score_threshold=score_threshold,
         )
 
-        sum_cp_e = float(np.sum(event.cp_energies))
-        rows.append({
-            "file_name":                event.file_name,
-            "event_idx":                event.event_idx,
-            "n_truth_cp":               event.n_truth_cp,
-            "sum_cp_energy":            sum_cp_e,
-            "mean_cp_energy":           sum_cp_e / event.n_truth_cp if event.n_truth_cp > 0 else 0.0,
-            "n_reco":                   m["n_reco"],
-            "efficiency":               m["efficiency"],
-            "total_lc_energy":          m["total_lc_energy"],
-            "discarded_energy_fraction": m["discarded_energy_fraction"],
-            "clue_ms":                  result.elapsed_ms,
-            "backend":                  result.backend,
-        })
+        clue_times.append(result.elapsed_ms)
+        for obj in objects:
+            rows.append({
+                "file_name":   event.file_name,
+                "event_idx":   event.event_idx,
+                "n_truth_cp":  event.n_truth_cp,
+                "clue_ms":     result.elapsed_ms,
+                "backend":     result.backend,
+                **obj,
+            })
 
         if (i + 1) % 500 == 0:
             elapsed = time.perf_counter() - t_start
             print(f"  {i+1} events  ({elapsed:.1f}s)  last: {result.n_clusters} clusters [{result.backend}]")
 
+    n_events = len(clue_times)
     elapsed = time.perf_counter() - t_start
-    print(f"\nDone: {len(rows)} events in {elapsed:.1f}s ({elapsed / max(len(rows), 1) * 1000:.1f} ms/event)")
+    print(f"\nDone: {n_events} events in {elapsed:.1f}s ({elapsed / max(n_events, 1) * 1000:.1f} ms/event)")
 
     df = pd.DataFrame(rows)
-    out_path = output_dir / "metrics.parquet"
+    out_path = output_dir / "objects.parquet"
     df.to_parquet(out_path, index=False)
-    print(f"Metrics → {out_path}")
+    print(f"Per-object metrics → {out_path}")
 
     summary = {
-        "timestamp":             time.strftime("%Y-%m-%dT%H:%M:%S"),
-        "git_hash":              _git_hash(),
-        "config":                config,
-        "n_events":              len(rows),
-        "mean_efficiency":       float(df["efficiency"].mean()),
-        "mean_discarded_fraction": float(df["discarded_energy_fraction"].mean()),
-        "mean_clue_ms":          float(df["clue_ms"].mean()),
-        "backend":               rows[0]["backend"] if rows else "unknown",
+        "timestamp":       time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "git_hash":        _git_hash(),
+        "config":          config,
+        "n_events":        n_events,
+        "n_objects":       len(rows),
+        "mean_purity":     float(df["is_pure"].mean()) if len(rows) else 0.0,
+        "mean_clue_ms":    float(np.mean(clue_times)) if clue_times else 0.0,
+        "backend":         rows[0]["backend"] if rows else "unknown",
     }
     (output_dir / "summary.json").write_text(json.dumps(summary, indent=2))
-    print(f"efficiency={summary['mean_efficiency']:.3f}  "
-          f"discarded={summary['mean_discarded_fraction']:.3f}  "
+    print(f"purity={summary['mean_purity']:.3f}  "
+          f"objects={summary['n_objects']}  "
           f"clue={summary['mean_clue_ms']:.1f}ms")
 
 

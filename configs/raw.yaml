@@ -19,7 +19,8 @@ clustering:
   device_id: 0
 
 metrics:
-  min_lc: 3        # minimum LCs per trackster to count as reconstructed
+  min_lc: 3              # minimum LCs per trackster to count as reconstructed
+  purity_threshold: 0.2  # reco-to-sim score below which a match counts as "pure"
 
 output:
   dir: results/raw

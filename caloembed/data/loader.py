@@ -18,6 +18,7 @@ import h5py
 class EventData:
     coords: np.ndarray       # (N, 3) float32 — x, y, z
     weights: np.ndarray      # (N,) float32 — LC energies
+    lc_cp_idx: np.ndarray    # (N,) int32 
     n_truth_cp: int
     cp_energies: np.ndarray  # (n_truth_cp,) float32 — raw CP energies
     file_name: str
@@ -37,6 +38,7 @@ def iter_hdf5_events(path, max_events: int = -1):
         lc_y = f['lc/y'][:]
         lc_z = f['lc/z'][:]
         lc_e = f['lc/energy'][:]
+        lc_cp_idx = f['truth/argmax_cp_idx'][:]
         cp_energy = f['event/cp_raw_energy'][:]
         n_cp_arr = f['event/n_cp'][:]
 
@@ -46,6 +48,7 @@ def iter_hdf5_events(path, max_events: int = -1):
         yield EventData(
             coords=np.stack([lc_x[ls:le], lc_y[ls:le], lc_z[ls:le]], axis=1),
             weights=lc_e[ls:le].copy(),
+            lc_cp_idx=lc_cp_idx[ls:le].copy(),
             n_truth_cp=int(n_cp_arr[ev]),
             cp_energies=cp_energy[cs:ce].copy(),
             file_name=file_name,
