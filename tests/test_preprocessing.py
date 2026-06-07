@@ -23,7 +23,6 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-# ── Synthetic data builder ────────────────────────────────────────────────────
 
 class _FakeTree:
     """Mimics the interface of a ROOT TTree entry for simtrackstersCP."""
@@ -140,8 +139,6 @@ def _make_exclusive_event():
         ],
     }
 
-
-# ── Tests: fraction and argmax logic ─────────────────────────────────────────
 
 from caloembed.data.preprocess import process_event
 
@@ -331,7 +328,6 @@ def test_cp_metadata_preserved():
     assert list(ev["event"]["cp_raw_energy"]) == pytest.approx([100.0, 50.0])
 
 
-# ── Tests: HDF5 round-trip ────────────────────────────────────────────────────
 
 def test_hdf5_roundtrip_offsets():
     """CSR offsets must be monotone and consistent with n_lc / n_cp / n_edges."""
@@ -424,7 +420,6 @@ def test_hdf5_roundtrip_offsets():
         Path(h5_path).unlink(missing_ok=True)
 
 
-# ── Integration test: real ROOT file ─────────────────────────────────────────
 
 REAL_ROOT = Path("/vols/cms/mm1221/cms/Data/100k/root/histo_921.root")
 
@@ -509,7 +504,6 @@ def test_real_file_full_conversion(tmp_path):
         assert len(ev["event"]["cp_raw_energy"]) == n_cp
         assert len(ev["truth"]["argmax_cp_idx"]) == n_lc
 
-        # Noise LCs are removed — no LC should have argmax_cp_idx == -1
         assert np.all(ev["truth"]["argmax_cp_idx"] >= 0), "Noise LC found in output"
         assert np.all(ev["truth"]["argmax_cp_idx"] < n_cp)
         assert np.all(ev["truth"]["coo_cp_idx"] < n_cp)
