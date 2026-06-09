@@ -16,11 +16,11 @@ n_ratio_bins: 14
 
 runs:
   - summary: results/raw_mix/summary.json
-    label: "CLUEstering: Raw"
+    label: "CLUEstering: initial"
   - summary: results/clue3d/summary.json
     label: "CLUE3D"
-  - summary: results/raw_low_rho/summary.json
-    label: "CLUEstering: low rho"
+  - summary: results/raw_optimised/summary.json
+    label: "CLUEstering: optimised"
 
   # - summary: results/normalised/summary.json
   #   label: "Normalised"
