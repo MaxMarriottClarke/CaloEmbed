@@ -183,7 +183,7 @@ def main(argv=None):
         _plot_number_ratio( axes[row, 2], filtered_runs, ratio_bins,  colors)
 
         for ax in axes[row]:
-            ax.set_title(f"{label} — {ax.get_title()}")
+            ax.set_title(f"{label}: {ax.get_title()}")
             _finish_ax(ax)
 
     out_path = out_dir / "metrics.png"
