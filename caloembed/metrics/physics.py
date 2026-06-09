@@ -13,15 +13,12 @@ def compute_purity(
 ) -> dict[str, np.ndarray]:
     """Compute the reco-to-sim purity score for each reconstructed object in one event.
 
-    Outlier LCs (cluster_id == -1) and clusters with fewer than min_lc layer
-    clusters are excluded from all metrics.
-
     For a reco object R matched to simulated object S, the reco-to-sim score is:
 
         score(R, S) = 1 - sum(E_lc^2 for lc in R ∩ S) / sum(E_lc^2 for lc in R)
 
     The best-matching S minimises this score, equivalent to maximising energy^2
-    overlap — found via a single grouped reduction rather than looping over all
+    overlap, found via a single grouped reduction rather than looping over all
     (R, S) pairs.
 
     Args:

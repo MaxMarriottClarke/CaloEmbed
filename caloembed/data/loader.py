@@ -2,9 +2,6 @@
 
 Provides EventData (per-event container) and iterators that yield one event
 at a time so the full dataset never has to sit in memory simultaneously.
-
-Per-file strategy: load all flat arrays into numpy once (file is ~2 MB),
-close the HDF5 handle, then yield sliced views per event.
 """
 
 from dataclasses import dataclass
@@ -16,12 +13,12 @@ import h5py
 
 @dataclass
 class EventData:
-    coords: np.ndarray       # (N, 3) float32 — x, y, z
-    weights: np.ndarray      # (N,) float32 — LC energies
-    lc_cp_idx: np.ndarray    # (N,) int32
+    coords: np.ndarray       
+    weights: np.ndarray      
+    lc_cp_idx: np.ndarray    
     n_truth_cp: int
-    cp_energies: np.ndarray  # (n_truth_cp,) float32 — raw CP energies
-    cp_pdg_ids: np.ndarray   # (n_truth_cp,) int32 — PDG ID of each CP
+    cp_energies: np.ndarray  
+    cp_pdg_ids: np.ndarray   
     file_name: str
     event_idx: int
 

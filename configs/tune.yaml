@@ -9,7 +9,7 @@ pipeline: raw   # coordinate transform: raw | (future: normalized, umap, gnn)
 
 data:
   dir: /vols/cms/mm1221/cms/Data/100k_mix/hdf5
-  n_events: 50   # number of events pre-loaded into memory for each objective evaluation
+  n_events: 1000   # number of events pre-loaded into memory for each objective evaluation
 
 output:
   dir: results/tune_raw
@@ -34,7 +34,7 @@ parameters:
     default: 2.6125   # critical distance for local density
   rhoc:
     lower:   0.1
-    upper:   5.0
+    upper:   8.0
     default: 1.4012   # density threshold separating seeds from followers
   do:
     lower:   1.0
@@ -52,7 +52,7 @@ parameters:
 # MOPSO optimiser settings
 mopso:
   n_particles:          40     # swarm size — more particles = broader search, slower per iter
-  n_iterations:        10     # total iterations
+  n_iterations:        50     # total iterations
   seed:                 42     # random seed for reproducibility
   inertia_weight:      0.5    # momentum of particle velocity
   cognitive_coefficient: 1.5  # pull toward particle's own best position

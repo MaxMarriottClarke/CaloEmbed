@@ -1,0 +1,32 @@
+# HTCondor submit file for CLUE3D parameter tuning.
+#
+# Submit from the repo root:
+#   condor_submit condor/tune.sub
+#
+# Override config:
+#   condor_submit condor/tune.sub config=configs/tune.yaml
+#
+# Resume a previous run:
+#   condor_submit condor/tune.sub extra_args=--resume
+#
+# Different output directory:
+#   condor_submit condor/tune.sub extra_args="--output results/tune_v2"
+
+universe        = vanilla
+executable      = run_tune.sh
+arguments       = --config $(config) $(extra_args)
+initialdir      = /vols/cms/mm1221/cms/CaloEmbed
+
+config          = configs/tune.yaml
+extra_args      =
+
+log             = logs/condor/tune_$(ClusterId).log
+output          = logs/condor/tune_$(ClusterId).$(ProcId).out
+error           = logs/condor/tune_$(ClusterId).$(ProcId).err
+
+request_CPUs    = 1
+request_GPUs    = 1
+request_memory  = 8GB
++MaxRuntime     = 28800
+
+queue

@@ -21,12 +21,6 @@ HDF5 layout per file:
     cp_raw_energy              float32 [N_cp_total]   
     cp_pdg_id                  int32   [N_cp_total]
     cp_offsets                 int64   [N_events + 1]
-
-
-Fraction convention:
-  fraction[lc_j, cp_i] = 1 / vertices_multiplicity[cp_i][j]
-  Sum of fractions over all CPs for a given LC ≈ 1.0 (by TICL construction).
-  argmax tie-breaking: lower CP index wins (first encountered in ROOT ordering).
 """
 
 from __future__ import annotations
@@ -45,16 +39,12 @@ def _eta_phi(x: np.ndarray, y: np.ndarray, z: np.ndarray):
 
 def process_event(tree, event_idx: int) -> dict:
     """Convert one TTree entry into numpy arrays.
-
-    Returns a dict with structure matching the HDF5 layout above.
-    All arrays use local indexing within the event.
     """
     tree.GetEntry(event_idx)
 
-    n_cp: int = tree.NTracksters
+    n_cp: int = tree.NTracksters #only true for cp branch, otherwise number of reco objects
     n_lc: int = tree.NClusters
 
-    # Preallocate LC arrays indexed by global-within-event LC index
     lc_x      = np.empty(n_lc, dtype=np.float32)
     lc_y      = np.empty(n_lc, dtype=np.float32)
     lc_z      = np.empty(n_lc, dtype=np.float32)

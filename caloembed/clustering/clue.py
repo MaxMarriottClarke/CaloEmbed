@@ -32,17 +32,10 @@ _BACKEND_PRIORITY = ["gpu cuda", "gpu hip", "cpu openmp", "cpu serial"]
 def probe_backend(requested: str = "auto", device_id: int = 0) -> str:
     """Resolve and verify a backend once by running a tiny dummy job.
 
-    Call this once before the event loop. Pass the returned string as the
-    explicit backend to all subsequent run_clue calls so selection only
-    happens once per run.
-
-    For 'auto', tries backends in priority order and returns the first that
-    works. For an explicit name, verifies it is usable and returns it.
-
     Raises RuntimeError if no working backend is found.
     """
     if not _CLUE_AVAILABLE:
-        raise RuntimeError("CLUEstering is not installed. Run: pip install -e CLUEstering/")
+        raise RuntimeError("CLUEstering is not installed.")
 
     chain = (
         [b for b in _BACKEND_PRIORITY if b in available_backends()]
@@ -54,7 +47,7 @@ def probe_backend(requested: str = "auto", device_id: int = 0) -> str:
     if requested != "auto" and requested not in available_backends():
         raise ValueError(f"Backend '{requested}' not available. Available: {available_backends()}")
 
-    # 5-point dummy dataset 
+    # 5-point dummy dataset, initialises backend once 
     dummy = [
         np.array([0.0, 1.0, 2.0, 3.0, 4.0], dtype=np.float32),
         np.array([0.0, 1.0, 2.0, 3.0, 4.0], dtype=np.float32),
@@ -90,10 +83,6 @@ def run_clue(
     device_id: int = 0,
 ) -> ClueResult:
     """Run CLUE clustering on one event.
-
-    For production use, resolve the backend once with probe_backend() before
-    the event loop and pass the result here as an explicit string, so backend
-    selection only happens once per run.
 
     Args:
         coords:        (N, n_dim) float32
