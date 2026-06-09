@@ -15,6 +15,12 @@ import pandas as pd
 import yaml
 
 
+_PARTICLES = [
+    (11,  "Electron"),
+    (211, "Pion"),
+]
+
+
 # ── data loading ──────────────────────────────────────────────────────────────
 
 def _load_run(entry: dict) -> dict:
@@ -28,6 +34,15 @@ def _load_run(entry: dict) -> dict:
         "objects":    pd.read_parquet(outputs["objects"]),
         "efficiency": pd.read_parquet(outputs["efficiency"]),
         "events":     pd.read_parquet(outputs["events"]),
+    }
+
+
+def _filter_by_pdgid(run: dict, pdgid: int) -> dict:
+    return {
+        **run,
+        "objects":    run["objects"][   run["objects"]["matched_cp_pdgid"].abs() == pdgid],
+        "efficiency": run["efficiency"][ run["efficiency"]["cp_pdgid"].abs()      == pdgid],
+        "events":     run["events"][     run["events"]["pdgid"].abs()              == pdgid],
     }
 
 
@@ -145,32 +160,36 @@ def main(argv=None):
     out_dir = Path(args.output or cfg.get("output_dir", "plots"))
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Energy bins for purity and efficiency
+    # Energy bins for purity and efficiency (shared across particle types)
     energy_bins = np.linspace(
         cfg.get("energy_min", 20),
         cfg.get("energy_max", 300),
         cfg.get("n_energy_bins", 14) + 1,
     )
 
-    # Bins for number ratio — auto-range from data (2nd–98th percentile)
-    all_lc_e = np.concatenate([r["events"]["total_lc_energy"].to_numpy() for r in runs])
-    ratio_bins = np.linspace(
-        cfg.get("ratio_energy_min", float(np.percentile(all_lc_e, 2))),
-        cfg.get("ratio_energy_max", float(np.percentile(all_lc_e, 98))),
-        cfg.get("n_ratio_bins", 14) + 1,
-    )
-
     colors = [plt.get_cmap("tab10")(i) for i in range(len(runs))]
 
-    fig, axes = plt.subplots(1, 3, figsize=(16, 5))
-    fig.subplots_adjust(wspace=0.32)
+    fig, axes = plt.subplots(len(_PARTICLES), 3, figsize=(16, 10))
+    fig.subplots_adjust(wspace=0.32, hspace=0.45)
 
-    _plot_purity(       axes[0], runs, energy_bins, colors)
-    _plot_efficiency(   axes[1], runs, energy_bins, colors)
-    _plot_number_ratio( axes[2], runs, ratio_bins,  colors)
+    for row, (pdgid, label) in enumerate(_PARTICLES):
+        filtered_runs = [_filter_by_pdgid(r, pdgid) for r in runs]
 
-    for ax in axes:
-        _finish_ax(ax)
+        # Auto-range ratio bins from this particle type's LC energies
+        all_lc_e = np.concatenate([r["events"]["total_lc_energy"].to_numpy() for r in filtered_runs])
+        ratio_bins = np.linspace(
+            cfg.get("ratio_energy_min", float(np.percentile(all_lc_e, 2))),
+            cfg.get("ratio_energy_max", float(np.percentile(all_lc_e, 98))),
+            cfg.get("n_ratio_bins", 14) + 1,
+        )
+
+        _plot_purity(       axes[row, 0], filtered_runs, energy_bins, colors)
+        _plot_efficiency(   axes[row, 1], filtered_runs, energy_bins, colors)
+        _plot_number_ratio( axes[row, 2], filtered_runs, ratio_bins,  colors)
+
+        for ax in axes[row]:
+            ax.set_title(f"{label} — {ax.get_title()}")
+            _finish_ax(ax)
 
     out_path = out_dir / "metrics.png"
     fig.savefig(out_path, bbox_inches="tight", dpi=150)
