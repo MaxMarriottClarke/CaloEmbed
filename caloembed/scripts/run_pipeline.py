@@ -20,7 +20,7 @@ import yaml
 
 from caloembed.data.loader import iter_hdf5_dir
 from caloembed.clustering.clue import run_clue, probe_backend, available_backends
-from caloembed.metrics.physics import compute_purity, compute_efficiency, compute_number_ratio
+from caloembed.metrics.physics import compute_purity, compute_efficiency
 
 
 _TRANSFORMS = {
@@ -154,13 +154,14 @@ def main(argv=None):
             purity_result=purity,
             efficiency_threshold=efficiency_threshold,
         )
-        nr = compute_number_ratio(purity, event.n_truth_cp)
-
         n_reco = len(purity["reco_id"])
         n_cp   = len(efficiency["cp_idx"])
 
+        matched_cp_pdgids = event.cp_pdg_ids[purity["matched_cp_idx"]]
+
         for k, arr in purity.items():
             obj_cols.setdefault(k, []).extend(arr.tolist())
+        obj_cols.setdefault("matched_cp_pdgid", []).extend(matched_cp_pdgids.tolist())
         obj_cols.setdefault("file_name",  []).extend([event.file_name]  * n_reco)
         obj_cols.setdefault("event_idx",  []).extend([event.event_idx]  * n_reco)
         obj_cols.setdefault("n_truth_cp", []).extend([event.n_truth_cp] * n_reco)
@@ -169,17 +170,31 @@ def main(argv=None):
 
         for k, arr in efficiency.items():
             eff_cols.setdefault(k, []).extend(arr.tolist())
+        eff_cols.setdefault("cp_pdgid",   []).extend(
+            event.cp_pdg_ids[efficiency["cp_idx"]].tolist()
+        )
         eff_cols.setdefault("file_name",  []).extend([event.file_name]  * n_cp)
         eff_cols.setdefault("event_idx",  []).extend([event.event_idx]  * n_cp)
         eff_cols.setdefault("n_truth_cp", []).extend([event.n_truth_cp] * n_cp)
         eff_cols.setdefault("clue_ms",    []).extend([result.elapsed_ms] * n_cp)
         eff_cols.setdefault("backend",    []).extend([result.backend]   * n_cp)
 
-        event_rows.append(dict(
-            file_name=event.file_name, event_idx=event.event_idx,
-            n_truth_cp=event.n_truth_cp, clue_ms=result.elapsed_ms,
-            backend=result.backend, total_lc_energy=float(weights.sum()), **nr,
-        ))
+        total_lc_energy = float(weights.sum())
+        for pdgid in np.unique(event.cp_pdg_ids):
+            n_sim_pdg  = int(np.sum(event.cp_pdg_ids == pdgid))
+            n_reco_pdg = int(np.sum(matched_cp_pdgids == pdgid))
+            event_rows.append(dict(
+                file_name=event.file_name,
+                event_idx=event.event_idx,
+                pdgid=int(pdgid),
+                n_truth_cp=event.n_truth_cp,
+                clue_ms=result.elapsed_ms,
+                backend=result.backend,
+                total_lc_energy=total_lc_energy,
+                n_reco=n_reco_pdg,
+                n_sim=n_sim_pdg,
+                ratio=float(n_reco_pdg / n_sim_pdg) if n_sim_pdg > 0 else 0.0,
+            ))
 
         clue_times.append(result.elapsed_ms)
 
