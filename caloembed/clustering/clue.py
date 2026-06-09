@@ -54,7 +54,7 @@ def probe_backend(requested: str = "auto", device_id: int = 0) -> str:
     if requested != "auto" and requested not in available_backends():
         raise ValueError(f"Backend '{requested}' not available. Available: {available_backends()}")
 
-    # 5-point dummy dataset — just enough to exercise the backend
+    # 5-point dummy dataset 
     dummy = [
         np.array([0.0, 1.0, 2.0, 3.0, 4.0], dtype=np.float32),
         np.array([0.0, 1.0, 2.0, 3.0, 4.0], dtype=np.float32),

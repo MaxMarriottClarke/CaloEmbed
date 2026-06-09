@@ -21,7 +21,6 @@ _PARTICLES = [
 ]
 
 
-# ── data loading ──────────────────────────────────────────────────────────────
 
 def _load_run(entry: dict) -> dict:
     summary_path = Path(entry["summary"])
@@ -46,7 +45,6 @@ def _filter_by_pdgid(run: dict, pdgid: int) -> dict:
     }
 
 
-# ── binning helpers ───────────────────────────────────────────────────────────
 
 def _binned_fraction(x: np.ndarray, flag: np.ndarray, bins: np.ndarray):
     """Fraction of flag==True per bin with binomial uncertainty."""
@@ -80,7 +78,6 @@ def _binned_mean(x: np.ndarray, y: np.ndarray, bins: np.ndarray):
     return centres, mean, err
 
 
-# ── individual plots ──────────────────────────────────────────────────────────
 
 def _plot_purity(ax, runs, bins, colors):
     for run, color in zip(runs, colors):
@@ -145,8 +142,6 @@ def _finish_ax(ax):
     ax.grid(True, alpha=0.25, linestyle="--")
     ax.tick_params(direction="in", top=True, right=True)
 
-
-# ── main ──────────────────────────────────────────────────────────────────────
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Plot CaloEmbed metrics")

@@ -16,6 +16,9 @@ n_ratio_bins: 14
 
 runs:
   - summary: results/raw_mix/summary.json
-    label: "Raw CLUE"
+    label: "CLUEstering: Raw"
+  - summary: results/clue3d/summary.json
+    label: "CLUE3D"
+
   # - summary: results/normalised/summary.json
   #   label: "Normalised"
