@@ -19,6 +19,8 @@ runs:
     label: "CLUEstering: Raw"
   - summary: results/clue3d/summary.json
     label: "CLUE3D"
+  - summary: results/raw_low_rho/summary.json
+    label: "CLUEstering: low rho"
 
   # - summary: results/normalised/summary.json
   #   label: "Normalised"

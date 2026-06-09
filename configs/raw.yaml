@@ -2,26 +2,26 @@
 pipeline: raw
 
 data:
-  dir: /vols/cms/mm1221/cms/Data/100k/hdf5
+  dir: /vols/cms/mm1221/cms/Data/100k_mix/hdf5
   max_events: -1   # -1 = all events
   max_files: -1    # -1 = all files
 
 clustering:
   backend: auto    # auto → gpu cuda > cpu openmp > cpu serial
   dc: 2.6125
-  rhoc: 4.4012
+  rhoc: 1.4012
   do: 5.1886
   dm: 3.1692
   ppbin: 128
   metric: weighted_chebyshev
-  metric_params: [1.0, 1.0, 0.55]   # [x, y, z] — down-weights z separation
+  metric_params: [1.0, 1.0, 0.55]   
   block_size: 1024
   device_id: 0
 
 metrics:
-  min_lc: 3                  # minimum LCs per trackster to count as reconstructed
-  purity_threshold: 0.2      # reco-to-sim score below which a match counts as "pure"
-  efficiency_threshold: 0.5  # shared/total LC energy at or above which a CP counts as "efficient"
+  min_lc: 3 
+  purity_threshold: 0.2 
+  efficiency_threshold: 0.5
 
 output:
-  dir: results/raw
+  dir: results/raw_low_rho
