@@ -93,8 +93,8 @@ def _plot_purity(ax, runs, bins, colors):
                     marker="o", markersize=5, capsize=3, linewidth=1.5)
 
     ax.set_xlabel("Matched CP energy [GeV]")
-    ax.set_ylabel("Purity fraction")
-    ax.set_title("Reco-to-sim purity")
+    ax.set_ylabel("Purity")
+    ax.set_title("Purity")
     ax.set_ylim(0, 1.05)
 
 
@@ -112,8 +112,8 @@ def _plot_efficiency(ax, runs, bins, colors):
                     marker="s", markersize=5, capsize=3, linewidth=1.5)
 
     ax.set_xlabel("CP energy [GeV]")
-    ax.set_ylabel("Efficiency fraction")
-    ax.set_title("Sim-to-reco efficiency")
+    ax.set_ylabel("Efficiency ")
+    ax.set_title("CP Efficiency")
     ax.set_ylim(0, 1.05)
 
 
