@@ -16,7 +16,7 @@ export MAMBA_ROOT_PREFIX="${HOME}/micromamba"
 eval "$("${HOME}/bin/micromamba" shell hook --shell bash)"
 micromamba activate caloembed
 
-#source /vols/software/cuda/setup.sh
+source /vols/software/cuda/setup.sh
 # ── make the local package importable ────────────────────────────────────────
 export PYTHONPATH="${REPO_DIR}:${PYTHONPATH}"
 
