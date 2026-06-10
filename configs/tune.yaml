@@ -8,11 +8,11 @@
 pipeline: raw   
 
 data:
-  dir: /vols/cms/mm1221/cms/Data/100k_mix/hdf5
+  dir: /vols/cms/mm1221/cms/Data/d5/1k_mix/hdf5
   n_events: 1000
 
 output:
-  dir: results/tune_raw
+  dir: results/param_tuning/tune_d5
 
 clustering:
   backend: auto       # auto → gpu cuda > cpu openmp > cpu serial

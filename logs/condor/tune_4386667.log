@@ -1,0 +1,34 @@
+000 (4386667.000.000) 2026-06-10 10:47:55 Job submitted from host: <146.179.108.134:9618?addrs=146.179.108.134-9618&alias=htcmaster00.hep.ph.ic.ac.uk&noUDP&sock=schedd_970_eaf4>
+...
+001 (4386667.000.000) 2026-06-10 10:48:10 Job executing on host: <146.179.108.123:9618?addrs=146.179.108.123-9618+[2a0c-5bc0-88-111-216-3eff-fe7f-1db]-9618&alias=lxcgpu02.hep.ph.ic.ac.uk&noUDP&sock=startd_1897_c33f>
+	SlotName: slot1_1@lxcgpu02.hep.ph.ic.ac.uk
+	AvailableGPUs = { GPUs_GPU_26b53f56 }
+	CondorScratchDir = "/srv/localstage/condor/dir_2190265"
+	Cpus = 40
+	Disk = 735125138
+	GPUs = 1
+	GPUs_GPU_26b53f56 = [ Id = "GPU-26b53f56"; ClockMhz = 1380.0; Capability = 7.0; CoresPerCU = 64; DeviceName = "Tesla V100-PCIE-32GB"; DeviceUuid = "26b53f56-e762-284c-9af0-969372e446e1"; ECCEnabled = true; ComputeUnits = 80; NvidiaDriver = "580.159.04"; DriverVersion = 13.0; DevicePciBusId = "0000:00:03.0"; GlobalMemoryMb = 32494; MaxSupportedVersion = 13000 ]
+	Memory = 87707
+...
+006 (4386667.000.000) 2026-06-10 10:48:15 Image size of job updated: 172
+	0  -  MemoryUsage of job (MB)
+	0  -  ResidentSetSize of job (KB)
+...
+005 (4386667.000.000) 2026-06-10 10:48:15 Job terminated.
+	(1) Normal termination (return value 1)
+		Usr 0 00:00:05, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:00:05, Sys 0 00:00:00  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	0  -  Run Bytes Sent By Job
+	0  -  Run Bytes Received By Job
+	0  -  Total Bytes Sent By Job
+	0  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage      Request Allocated Assigned
+	   Cpus                 :        0        40           40 
+	   Disk (KB)            :        2 661612624.20 735125138 
+	   GPUs                 :                  1            1 "GPU-26b53f56"
+	   Memory (MB)          :        0     87707        87707 
+	   TimeExecute (s)      :        5                        
+	   TimeSlotBusy (s)     :        5                        
+...

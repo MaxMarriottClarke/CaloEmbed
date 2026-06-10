@@ -1,0 +1,35 @@
+WARNING:root:zarr >=2,<3 not installed. Zarr functionality will be disabled.
+[31;20m2026-06-10 10:48:15,307 - patatune - ERROR - Uncaught exception (util.py:107)[0m
+Traceback (most recent call last):
+  File "/home/hep/mm1221/micromamba/envs/caloembed/bin/caloembed-tune", line 6, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/vols/cms/mm1221/cms/CaloEmbed/caloembed/scripts/tune_clue.py", line 194, in main
+    backend    = probe_backend(clue_cfg.get("backend", "auto"), clue_cfg.get("device_id", 0))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/vols/cms/mm1221/cms/CaloEmbed/caloembed/clustering/clue.py", line 41, in probe_backend
+    [b for b in _BACKEND_PRIORITY if b in available_backends()]
+  File "/vols/cms/mm1221/cms/CaloEmbed/caloembed/clustering/clue.py", line 41, in <listcomp>
+    [b for b in _BACKEND_PRIORITY if b in available_backends()]
+                                          ^^^^^^^^^^^^^^^^^^^^
+  File "/vols/cms/mm1221/cms/CaloEmbed/caloembed/clustering/clue.py", line 26, in available_backends
+    return list(clue.backends)
+                ^^^^^^^^^^^^^
+AttributeError: module 'CLUEstering' has no attribute 'backends'
+ERROR:patatune:Uncaught exception
+Traceback (most recent call last):
+  File "/home/hep/mm1221/micromamba/envs/caloembed/bin/caloembed-tune", line 6, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/vols/cms/mm1221/cms/CaloEmbed/caloembed/scripts/tune_clue.py", line 194, in main
+    backend    = probe_backend(clue_cfg.get("backend", "auto"), clue_cfg.get("device_id", 0))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/vols/cms/mm1221/cms/CaloEmbed/caloembed/clustering/clue.py", line 41, in probe_backend
+    [b for b in _BACKEND_PRIORITY if b in available_backends()]
+  File "/vols/cms/mm1221/cms/CaloEmbed/caloembed/clustering/clue.py", line 41, in <listcomp>
+    [b for b in _BACKEND_PRIORITY if b in available_backends()]
+                                          ^^^^^^^^^^^^^^^^^^^^
+  File "/vols/cms/mm1221/cms/CaloEmbed/caloembed/clustering/clue.py", line 26, in available_backends
+    return list(clue.backends)
+                ^^^^^^^^^^^^^
+AttributeError: module 'CLUEstering' has no attribute 'backends'
