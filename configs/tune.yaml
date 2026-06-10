@@ -5,16 +5,15 @@
 #   caloembed-tune --config configs/tune.yaml --output results/tune_run2
 #   caloembed-tune --config configs/tune.yaml --resume          # continue from checkpoint
 
-pipeline: raw   # coordinate transform: raw | (future: normalized, umap, gnn)
+pipeline: raw   
 
 data:
   dir: /vols/cms/mm1221/cms/Data/100k_mix/hdf5
-  n_events: 1000   # number of events pre-loaded into memory for each objective evaluation
+  n_events: 1000
 
 output:
   dir: results/tune_raw
 
-# CLUE backend and fixed clustering settings (ppbin and x/y metric weights are not tuned)
 clustering:
   backend: auto       # auto → gpu cuda > cpu openmp > cpu serial
   ppbin: 128
@@ -22,51 +21,43 @@ clustering:
   device_id: 0
 
 metrics:
-  min_lc: 3           # minimum layer clusters for a reco object to count
+  min_lc: 3
 
 # Parameters to tune.
-# Each entry: lower bound, upper bound, default (centre of gaussian-initialised swarm).
-# Order here determines the order passed to CLUE — do not reorder without checking the script.
 parameters:
   dc:
     lower:   1.0
     upper:   7.0
-    default: 2.6125   # critical distance for local density
+    default: 2.6125   
   rhoc:
     lower:   0.1
     upper:   8.0
-    default: 1.4012   # density threshold separating seeds from followers
+    default: 1.4012   
   do:
     lower:   1.0
     upper:  10.0
-    default: 5.1886   # nearest-higher density search radius
+    default: 5.1886   
   dm:
     lower:   1.0
     upper:   10.0
-    default: 3.1692   # follower connection radius
+    default: 3.1692   
   z_scale:
     lower:   0.1
     upper:   2.0
-    default: 0.55     # z-axis weight in weighted_chebyshev (x/y fixed at 1.0)
+    default: 0.55     
 
-# MOPSO optimiser settings
 mopso:
-  n_particles:          40     # swarm size — more particles = broader search, slower per iter
-  n_iterations:        50     # total iterations
-  seed:                 42     # random seed for reproducibility
-  inertia_weight:      0.5    # momentum of particle velocity
-  cognitive_coefficient: 1.5  # pull toward particle's own best position
-  social_coefficient:   2.0   # pull toward global Pareto front
-  topology: lower_weighted_crowding_distance  # how each particle picks its global best
-                                              # options: random | round_robin |
-                                              #   lower_weighted_crowding_distance |
-                                              #   higher_weighted_crowding_distance
-  initial_position: random  # initialise swarm around default parameter values
-                              # options: gaussian | random | lower_bounds | upper_bounds
-
-# Objective function settings
+  n_particles:          40    
+  n_iterations:        50     
+  seed:                 42    
+  inertia_weight:      0.5    
+  cognitive_coefficient: 1.5  
+  social_coefficient:   2.0   
+  topology: lower_weighted_crowding_distance  
+                                              
+                                              
+                                              
+  initial_position: random  
+                            
 objectives:
-  # Penalty multiplier applied when n_reco/n_sim < 1 (under-clustering).
-  # ratio >= 1: score = ratio (minimise toward 1)
-  # ratio <  1: score = 1 + under_cluster_penalty * (1 - ratio)
   under_cluster_penalty: 1000.0

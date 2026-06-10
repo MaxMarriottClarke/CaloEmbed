@@ -4,7 +4,6 @@
 
 output_dir: plots/
 
-# CP energy axis for purity and efficiency plots
 energy_min: 20
 energy_max: 300
 n_energy_bins: 14
@@ -15,12 +14,10 @@ n_energy_bins: 14
 n_ratio_bins: 14
 
 runs:
-  - summary: results/raw_mix/summary.json
-    label: "CLUEstering: initial"
-  - summary: results/clue3d/summary.json
-    label: "CLUE3D"
-  - summary: results/raw_optimised/summary.json
-    label: "CLUEstering: optimised"
+  - summary: results/d10/cluestering_opt/summary.json
+    label: "d10: CLUEstering"
+  - summary: results/d10/clue3d/summary.json
+    label: "d10: CLUE3D"
+  - summary: results/d5/cluestering/summary.json
+    label: "d5: CLUEstering"
 
-  # - summary: results/normalised/summary.json
-  #   label: "Normalised"
