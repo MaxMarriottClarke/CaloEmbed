@@ -8,13 +8,13 @@ data:
 
 clustering:
   backend: auto    # auto → gpu cuda > cpu openmp > cpu serial
-  dc: 2.542
-  rhoc: 2.3632
-  do: 7.3272
-  dm: 5.028
+  dc: 1.0
+  rhoc: 2.0503
+  do: 10.0
+  dm: 3.3661
   ppbin: 128
   metric: weighted_chebyshev
-  metric_params: [1.0, 1.0, 0.177]   
+  metric_params: [1.0, 1.0, 0.1612]   
   block_size: 1024
   device_id: 0
 
@@ -24,4 +24,4 @@ metrics:
   efficiency_threshold: 0.5
 
 output:
-  dir: results/d5/cluestering
+  dir: results/d5/cluestering_opt
