@@ -1,0 +1,1 @@
+WARNING:root:zarr >=2,<3 not installed. Zarr functionality will be disabled.

@@ -1,9 +1,12 @@
 """3D event display:
 
 Produces three datasets:
-  - mixed/    : 10 events from the mixed (multi-PDG) dataset
-  - electron/ : 10 events from a single-electron file (PDG 11)
-  - pion/     : 10 events from a single-pion file (PDG -211)
+  - mixed/    : N events from the mixed (multi-PDG) dataset
+  - electron/ : N events from single-electron files (PDG 11)
+  - pion/     : N events from single-pion files (PDG -211)
+
+Each file is fixed multiplicity (same n_cp for all events). To get variety,
+one event is taken from each distinct n_cp bucket, up to --n-events files.
 
 Each event is a 3-panel figure. Coloring:
   - Truth: LCs coloured by argmax CP index; CP barycenters marked.
@@ -13,9 +16,10 @@ Each event is a 3-panel figure. Coloring:
   - Reco objects with < 3 LCs are shown in gray.
 
 Usage:
-  caloembed-display                                   # defaults: configs/raw.yaml
+  caloembed-display                                   # defaults: configs/raw.yaml, d5, 5 events
   caloembed-display --config configs/tune.yaml
-  caloembed-display --dc 3.0 --rhoc 2.5 --n-events 5
+  caloembed-display --data-root /vols/cms/mm1221/cms/Data/d10
+  caloembed-display --dc 3.0 --rhoc 2.5 --n-events 6
 """
 
 import argparse
@@ -227,38 +231,48 @@ def plot_event(h5_path, root_path, ev_idx, backend, clue_params, min_lc, score_t
 
 
 
-def find_file_by_pdg(hdf5_dir, target_pdg):
-    """Return the first HDF5 file where all CPs have the given PDG ID."""
+def select_files(hdf5_dir, n, pdg=None):
+    """Return up to n (h5_path, ev_idx=0) pairs, one per distinct n_cp bucket.
+
+    Files within a dataset are fixed multiplicity (same n_cp for every event),
+    so sampling one event per file gives topological variety.
+    pdg=None accepts any file (mixed); pdg=<int> requires single-PDG files.
+    """
+    by_ncp = {}
     for h5_file in sorted(hdf5_dir.glob('*.h5')):
         with h5py.File(h5_file, 'r') as h:
             pdgids = np.unique(h['event/cp_pdg_id'][:])
-            if len(pdgids) == 1 and int(pdgids[0]) == target_pdg:
-                return h5_file
-    raise FileNotFoundError(f'No single-PDG file for PDG={target_pdg} in {hdf5_dir}')
+            if pdg is not None and not (len(pdgids) == 1 and int(pdgids[0]) == pdg):
+                continue
+            n_cp = int(np.diff(h['event/cp_offsets'][:])[0])
+        if n_cp not in by_ncp:
+            by_ncp[n_cp] = h5_file
+
+    pairs = [(by_ncp[k], 0) for k in sorted(by_ncp)[:n]]
+    if not pairs:
+        label = f'PDG={pdg}' if pdg is not None else 'mixed'
+        raise FileNotFoundError(f'No HDF5 files matching {label} in {hdf5_dir}')
+    return pairs
 
 
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-_DEFAULT_CONFIG      = _REPO_ROOT / 'configs' / 'raw.yaml'
-_DEFAULT_MIXED_HDF5  = Path('/vols/cms/mm1221/cms/Data/100k_mix/hdf5')
-_DEFAULT_MIXED_ROOT  = Path('/vols/cms/mm1221/cms/Data/100k_mix/root')
-_DEFAULT_SEP_HDF5    = Path('/vols/cms/mm1221/cms/Data/100k_mix_sep/hdf5')
-_DEFAULT_SEP_ROOT    = Path('/vols/cms/mm1221/cms/Data/100k_mix_sep/root')
-_DEFAULT_OUTPUT      = _REPO_ROOT / 'plots' / '3d_events'
+_REPO_ROOT    = Path(__file__).resolve().parents[2]
+_DEFAULT_CONFIG     = _REPO_ROOT / 'configs' / 'raw.yaml'
+_DEFAULT_DATA_ROOT  = Path('/vols/cms/mm1221/cms/Data/d5')
+_DEFAULT_OUTPUT     = _REPO_ROOT / 'plots' / '3d_events'
 
 
 def _parse_args(argv=None):
     p = argparse.ArgumentParser(description='3D event display: Truth | CLUE3D | CLUEstering')
     p.add_argument('--config', default=str(_DEFAULT_CONFIG),
                    help='YAML config file for clustering params (default: configs/raw.yaml)')
-    p.add_argument('--mixed-data', default=str(_DEFAULT_MIXED_HDF5),
-                   help='HDF5 dir for mixed events')
-    p.add_argument('--single-data', default=str(_DEFAULT_SEP_HDF5),
-                   help='HDF5 dir for single-particle events (electron + pion files)')
+    p.add_argument('--data-root', default=str(_DEFAULT_DATA_ROOT),
+                   help='Top-level data directory containing 100k_mix/ and 100k_mix_sep/ '
+                        '(default: d5)')
     p.add_argument('--output', default=str(_DEFAULT_OUTPUT),
                    help='Output directory for plots')
-    p.add_argument('--n-events', type=int, default=10,
-                   help='Events to plot per dataset (default: 10)')
+    p.add_argument('--n-events', type=int, default=5,
+                   help='Events to plot per dataset, one per distinct n_cp bucket (default: 5)')
     p.add_argument('--dc',      type=float, help='Override dc')
     p.add_argument('--rhoc',    type=float, help='Override rhoc')
     p.add_argument('--do',      type=float, help='Override do')
@@ -288,38 +302,34 @@ def main(argv=None):
     min_lc          = metrics_cfg.get('min_lc', 3)
     score_threshold = metrics_cfg.get('purity_threshold', 0.2)
 
-    mixed_hdf5 = Path(args.mixed_data)
-    mixed_root = Path(str(mixed_hdf5).replace('/hdf5', '/root'))
-    sep_hdf5   = Path(args.single_data)
-    sep_root   = Path(str(sep_hdf5).replace('/hdf5', '/root'))
-    out_root   = Path(args.output)
+    data_root = Path(args.data_root)
+    mix_hdf5  = data_root / '1k_mix'       / 'hdf5'
+    sep_hdf5  = data_root / '100k_mix_sep' / 'hdf5'
+    out_root  = Path(args.output)
+
+    # (label, hdf5_dir, pdg)  —  pdg=None accepts any file (mixed)
+    datasets = [
+        ('mixed',    mix_hdf5, None),
+        ('electron', sep_hdf5, 11),
+        ('pion',     sep_hdf5, -211),
+    ]
 
     backend = probe_backend(args.backend)
-    print(f'Config:  {args.config}')
-    print(f'Backend: {backend}')
+    print(f'Config:     {args.config}')
+    print(f'Data root:  {data_root}')
+    print(f'Backend:    {backend}')
     print(f'CLUE params: dc={clue_params["dc"]}  rhoc={clue_params["rhoc"]}  '
           f'do={clue_params["do"]}  dm={clue_params["dm"]}  '
           f'metric={clue_params["metric"]}\n')
 
-    # Mixed events
-    (out_root / 'mixed').mkdir(parents=True, exist_ok=True)
-    print('=== mixed ===')
-    h5_file   = sorted(mixed_hdf5.glob('*.h5'))[0]
-    root_file = mixed_root / (h5_file.stem + '.root')
-    for ev_idx in range(args.n_events):
-        plot_event(str(h5_file), str(root_file), ev_idx, backend,
-                   clue_params, min_lc, score_threshold,
-                   str(out_root / 'mixed' / f'{h5_file.stem}_ev{ev_idx:03d}.png'))
-    print()
-
-    # Single-particle: electron and pion
-    for target_pdg, label in [(11, 'electron'), (-211, 'pion')]:
+    for label, hdf5_dir, pdg in datasets:
         (out_root / label).mkdir(parents=True, exist_ok=True)
-        print(f'=== {label} (PDG={target_pdg}) ===')
-        h5_file   = find_file_by_pdg(sep_hdf5, target_pdg)
-        root_file = sep_root / (h5_file.stem + '.root')
-        print(f'  File: {h5_file.name}')
-        for ev_idx in range(args.n_events):
+        pdg_str = f'PDG={pdg}' if pdg is not None else 'mixed'
+        print(f'=== {label} ({pdg_str}) ===')
+        pairs = select_files(hdf5_dir, args.n_events, pdg)
+        for h5_file, ev_idx in pairs:
+            root_file = hdf5_dir.parent / 'root' / (h5_file.stem + '.root')
+            print(f'  n_cp bucket: {h5_file.name}')
             plot_event(str(h5_file), str(root_file), ev_idx, backend,
                        clue_params, min_lc, score_threshold,
                        str(out_root / label / f'{h5_file.stem}_ev{ev_idx:03d}.png'))
