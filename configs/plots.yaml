@@ -2,7 +2,7 @@
 # Add one entry per run under 'runs'. 'label' is optional — falls back to
 # the pipeline name stored in the summary.
 
-output_dir: plots/physics/
+output_dir: plots/
 
 energy_min: 20
 energy_max: 300
@@ -19,7 +19,7 @@ runs:
   - summary: results/d10/clue3d/summary.json
     label: "d10: CLUE3D"
   - summary: results/d5/cluestering_opt/summary.json
-    label: "d5: CLUEstering"
+    label: "d5: CLUEstering new params"
   - summary: results/d5/clue3d/summary.json
     label: "d5: CLUE3D"
 
