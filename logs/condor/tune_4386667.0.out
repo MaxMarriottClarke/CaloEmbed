@@ -1,5 +1,0 @@
-Host : lxcgpu02.hep.ph.ic.ac.uk
-Date : Wed Jun 10 10:48:14 BST 2026
-Args : --config configs/tune.yaml
-GPU  : Tesla V100-PCIE-32GB
-
