@@ -22,4 +22,6 @@ runs:
     label: "d5: CLUEstering (tuned to d5)"
   - summary: results/d5/clue3d/summary.json
     label: "d5: CLUE3D"
+  - summary: results/d5/cluestering_2/summary.json
+    label: "new"
 

@@ -2,19 +2,19 @@
 pipeline: raw
 
 data:
-  dir: /vols/cms/mm1221/cms/Data/d10/100k_mix_sep/hdf5/
+  dir: /vols/cms/mm1221/cms/Data/d5/100k_mix_sep/hdf5/
   max_events: -1   # -1 = all events
   max_files: -1    # -1 = all files
 
 clustering:
   backend: auto    # auto → gpu cuda > cpu openmp > cpu serial
-  dc: 1.0
-  rhoc: 2.0503
-  do: 10.0
-  dm: 3.3661
+  dc: 1.2502
+  rhoc: 2.6988
+  do: 20.0
+  dm: 3.214
   ppbin: 128
   metric: weighted_chebyshev
-  metric_params: [1.0, 1.0, 0.1612]   
+  metric_params: [1.0, 1.0, 0.1536]   
   block_size: 1024
   device_id: 0
 
@@ -24,4 +24,4 @@ metrics:
   efficiency_threshold: 0.5
 
 output:
-  dir: results/d10/cluestering
+  dir: results/d5/cluestering_2
