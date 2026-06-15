@@ -188,6 +188,7 @@ def main(argv=None):
 
     out_path = out_dir / "metrics.png"
     fig.savefig(out_path, bbox_inches="tight", dpi=150)
+    fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
     print(f"Saved → {out_path}")
     plt.close(fig)
 

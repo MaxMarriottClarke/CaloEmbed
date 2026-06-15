@@ -56,6 +56,7 @@ def _plot_pareto_objectives(df: pd.DataFrame, out_path: Path):
 
     fig.suptitle("Pareto front: pairwise objective projections", fontsize=12, y=1.01)
     fig.savefig(out_path, bbox_inches="tight", dpi=150)
+    fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)
     print(f"Saved → {out_path}")
 
@@ -88,6 +89,7 @@ def _plot_pareto_parameters(df: pd.DataFrame, out_path: Path):
 
     fig.suptitle("Parameter values across the Pareto front", fontsize=12, y=1.02)
     fig.savefig(out_path, bbox_inches="tight", dpi=150)
+    fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)
     print(f"Saved → {out_path}")
 
@@ -134,6 +136,7 @@ def _plot_convergence(history_dir: Path, out_path: Path):
 
     fig.suptitle("Best objective value per iteration", fontsize=12, y=1.02)
     fig.savefig(out_path, bbox_inches="tight", dpi=150)
+    fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)
     print(f"Saved → {out_path}")
 

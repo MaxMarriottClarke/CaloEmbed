@@ -1,0 +1,43 @@
+{
+  "run": {
+    "timestamp": "2026-06-10T08:59:36",
+    "git_hash": "5157e73556212234e8d286d3425eb0a097312b8a",
+    "output_dir": "results/d5/cluestering"
+  },
+  "setup": {
+    "pipeline": "raw",
+    "n_events": 99700,
+    "n_files": 997,
+    "clue": {
+      "dc": 2.542,
+      "rhoc": 2.3632,
+      "do": 7.3272,
+      "dm": 5.028,
+      "ppbin": 128,
+      "metric": "weighted_chebyshev",
+      "metric_params": [
+        1.0,
+        1.0,
+        0.177
+      ],
+      "backend": "gpu cuda"
+    },
+    "thresholds": {
+      "min_lc": 3,
+      "purity_threshold": 0.2,
+      "efficiency_threshold": 0.5
+    }
+  },
+  "results": {
+    "n_reco_objects": 508971,
+    "mean_purity": 0.7799442404380603,
+    "mean_efficiency": 0.5730565529622981,
+    "mean_number_ratio": 1.1602969145531834,
+    "mean_clue_ms": 4.503986345947843
+  },
+  "outputs": {
+    "objects": "results/d5/cluestering/objects.parquet",
+    "efficiency": "results/d5/cluestering/efficiency.parquet",
+    "events": "results/d5/cluestering/events.parquet"
+  }
+}

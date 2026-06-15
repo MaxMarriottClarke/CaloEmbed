@@ -1,0 +1,43 @@
+{
+  "run": {
+    "timestamp": "2026-06-09T07:05:55",
+    "git_hash": "3360a80859ba74307836717ea5bfd86d4e9195a2",
+    "output_dir": "results/d10/cluestering_initial"
+  },
+  "setup": {
+    "pipeline": "raw",
+    "n_events": 99800,
+    "n_files": 998,
+    "clue": {
+      "dc": 2.6125,
+      "rhoc": 4.4012,
+      "do": 5.1886,
+      "dm": 3.1692,
+      "ppbin": 128,
+      "metric": "weighted_chebyshev",
+      "metric_params": [
+        1.0,
+        1.0,
+        0.55
+      ],
+      "backend": "cpu openmp"
+    },
+    "thresholds": {
+      "min_lc": 3,
+      "purity_threshold": 0.2,
+      "efficiency_threshold": 0.5
+    }
+  },
+  "results": {
+    "n_reco_objects": 612727,
+    "mean_purity": 0.9962267045519456,
+    "mean_efficiency": 0.6858493948901838,
+    "mean_number_ratio": 1.3722654833476473,
+    "mean_clue_ms": 3.647007253026052
+  },
+  "outputs": {
+    "objects": "results/d10/cluestering_initial/objects.parquet",
+    "efficiency": "results/d10/cluestering_initial/efficiency.parquet",
+    "events": "results/d10/cluestering_initial/events.parquet"
+  }
+}

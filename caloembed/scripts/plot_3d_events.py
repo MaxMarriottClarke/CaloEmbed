@@ -226,6 +226,7 @@ def plot_event(h5_path, root_path, ev_idx, backend, clue_params, min_lc, score_t
     )
     plt.tight_layout()
     fig.savefig(out_path, dpi=130, bbox_inches='tight')
+    fig.savefig(Path(out_path).with_suffix('.pdf'), bbox_inches='tight')
     plt.close(fig)
     print(f'  Saved: {out_path}')
 

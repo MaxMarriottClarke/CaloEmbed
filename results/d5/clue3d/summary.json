@@ -1,0 +1,27 @@
+{
+  "run": {
+    "timestamp": "2026-06-10T09:08:48",
+    "output_dir": "results/d5/clue3d"
+  },
+  "setup": {
+    "pipeline": "clue3d",
+    "n_events": 99700,
+    "n_files": 997,
+    "thresholds": {
+      "min_lc": 3,
+      "purity_threshold": 0.2,
+      "efficiency_threshold": 0.5
+    }
+  },
+  "results": {
+    "n_reco_objects": 1869209,
+    "mean_purity": 0.8500585006813043,
+    "mean_efficiency": 0.9501593357271095,
+    "mean_number_ratio": 4.164482256292687
+  },
+  "outputs": {
+    "objects": "results/d5/clue3d/objects.parquet",
+    "efficiency": "results/d5/clue3d/efficiency.parquet",
+    "events": "results/d5/clue3d/events.parquet"
+  }
+}
