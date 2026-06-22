@@ -8,6 +8,7 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+.buildtmp/
 .venv/
 
 # Data and large outputs
@@ -19,7 +20,7 @@ build/
 
 # Results (keep structure, not outputs)
 #results/**
-!results/.gitkeep
+#!results/.gitkeep
 
 # Nsight profiling outputs
 *.nsys-rep
