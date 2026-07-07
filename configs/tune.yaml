@@ -12,7 +12,7 @@ data:
   n_events: 10000
 
 output:
-  dir: results/param_tuning/raw_noPU_d5
+  dir: results/param_tuning/raw_noPU_d5_20k
 
 clustering:
   backend: auto       # auto → gpu cuda > cpu openmp > cpu serial
@@ -42,8 +42,8 @@ parameters:
     upper:   50.0
     default: 3.1692   
   z_scale:
-    lower:   0.01
-    upper:   2.0
+    lower:   0.1
+    upper:   1.0
     default: 0.55     
 
 mopso:
