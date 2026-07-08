@@ -8,11 +8,11 @@
 pipeline: raw   
 
 data:
-  dir: /vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5
-  n_events: 10000
+  dir: /vols/cms/mm1221/cms/Data/d4_5/10k_mix_5_7_d4_5_tune/hdf5
+  n_events: 5000
 
 output:
-  dir: results/param_tuning/raw_noPU_d5_20k
+  dir: results/param_tuning/raw_noPU_d4_5_10k
 
 clustering:
   backend: auto       # auto → gpu cuda > cpu openmp > cpu serial
@@ -48,7 +48,7 @@ parameters:
 
 mopso:
   n_particles:          40    
-  n_iterations:        60     
+  n_iterations:        40     
   seed:                 42    
   inertia_weight:      0.5    
   cognitive_coefficient: 1.5  

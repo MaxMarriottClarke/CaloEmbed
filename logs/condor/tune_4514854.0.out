@@ -1,0 +1,80 @@
+Host : lxdgpu00.hep.ph.ic.ac.uk
+Date : Wed Jul  8 06:43:35 BST 2026
+Args : --config configs/tune.yaml
+GPU  : NVIDIA RTX A6000
+GPU backend verified working.
+
+Backend: gpu cuda  |  pipeline: raw
+Loading 5000 events from /vols/cms/mm1221/cms/Data/d4_5/10k_mix_5_7_d4_5_tune/hdf5 ...
+  5000 events in 3.2s
+Config snapshot: results/param_tuning/raw_noPU_d4_5_10k/config.json
+Starting MOPSO: 40 particles × 40 iterations
+Timing first iteration (40 particles × 5000 events)...
+First iteration:  3087.8s
+Estimated total:  40 iters × 3087.8s/iter = 34h 18m  (finish ~17:54)
+
+  iter  2/40  2794.9s/iter  elapsed 1h 33m  remaining ~29h 30m  pareto 6
+  iter  4/40  1823.9s/iter  elapsed 2h 01m  remaining ~18h 14m  pareto 10
+  iter  6/40  1508.1s/iter  elapsed 2h 30m  remaining ~14h 14m  pareto 14
+  iter  8/40  1350.9s/iter  elapsed 3h 00m  remaining ~12h 00m  pareto 17
+  iter 10/40  1255.6s/iter  elapsed 3h 29m  remaining ~10h 27m  pareto 15
+  iter 12/40  875.4s/iter  elapsed 3h 59m  remaining ~6h 48m  pareto 18
+  iter 14/40  879.6s/iter  elapsed 4h 28m  remaining ~6h 21m  pareto 21
+  iter 16/40  878.3s/iter  elapsed 4h 57m  remaining ~5h 51m  pareto 22
+  iter 18/40  879.7s/iter  elapsed 5h 26m  remaining ~5h 22m  pareto 23
+  iter 20/40  879.1s/iter  elapsed 5h 55m  remaining ~4h 53m  pareto 13
+  iter 22/40  873.6s/iter  elapsed 6h 24m  remaining ~4h 22m  pareto 15
+  iter 24/40  872.7s/iter  elapsed 6h 53m  remaining ~3h 52m  pareto 17
+  iter 26/40  869.8s/iter  elapsed 7h 22m  remaining ~3h 22m  pareto 17
+  iter 28/40  862.4s/iter  elapsed 7h 50m  remaining ~2h 52m  pareto 16
+  iter 30/40  859.0s/iter  elapsed 8h 18m  remaining ~2h 23m  pareto 18
+  iter 32/40  858.6s/iter  elapsed 8h 47m  remaining ~1h 54m  pareto 22
+  iter 34/40  858.3s/iter  elapsed 9h 16m  remaining ~1h 25m  pareto 26
+  iter 36/40  864.6s/iter  elapsed 9h 46m  remaining ~57m 38s  pareto 31
+  iter 38/40  871.5s/iter  elapsed 10h 15m  remaining ~29m 03s  pareto 34
+  iter 40/40  873.4s/iter  elapsed 10h 44m  remaining ~0s  pareto 37
+
+Done in 10h 44m  (966.8s/iter avg)  Pareto size: 37
+
+      dc    rhoc       do       dm  z_scale  max_purity   min_eff  pen_ratio
+  0.0211  2.6765   0.9624   2.9057   0.3611      0.0021    0.0504    22.8153
+  0.5067  4.6707   1.2563   4.2381   0.2316      0.0035    0.0698   150.6405
+  0.0100  3.7437   1.7735  15.8947   0.5156      0.0075    0.0588   147.0545
+  0.0100  4.6340   1.1479   1.5161   0.1120      0.0089    0.0827   103.7130
+  0.2247  3.0984   4.9376   1.9927   0.6754      0.0132    0.0567    17.0782
+  1.7593 20.0000  32.0450   2.4420   0.2126      0.0137    0.1101   189.2344
+  1.7051 16.6730  29.6819   2.2546   0.2092      0.0146    0.1433   141.0953
+  0.5127  7.5238   2.7262   1.8142   0.1000      0.0179    0.1919    50.0076
+  0.0100  2.2803   5.2548   1.8784   0.7524      0.0195    0.0670    10.2355
+  1.8767  8.5530   3.1050   2.3852   0.3092      0.0250    0.2384    52.6005
+  0.0100  5.2945   1.8090   3.4724   0.1000      0.0267    0.1588    44.1923
+  0.3962  3.0045   1.3978   4.5343   0.1211      0.0292    0.2152    13.0674
+  1.5460  6.2949   2.3183   6.5900   0.3004      0.0296    0.2822    25.8408
+  1.3562  6.8765  15.4118   1.8297   0.1448      0.0348    0.3131    17.5121
+  0.3463  3.3015  15.1862   2.0643   0.1695      0.0500    0.3328     9.2454
+  1.9753  7.8716   2.7780   6.9267   0.2201      0.0574    0.3493    22.3598
+  0.5635  4.7454   2.8383   5.9512   0.1775      0.0576    0.3716    13.4752
+  0.0100  2.2718   1.7238   8.1091   0.1555      0.0603    0.3008     6.5298
+  0.4546  4.6268   4.1127   2.8410   0.1334      0.0648    0.3776    13.7333
+  0.4609  4.5817   3.5167   2.9839   0.1000      0.0743    0.3897    12.6778
+  0.4681  2.2059   3.0189   1.8589   0.1525      0.0748    0.3631     3.8375
+  1.6386  2.9811  12.6295   2.6206   0.3546      0.0808    0.4076     5.7837
+  0.0100  2.5043  22.5184   2.6622   0.2500      0.0928    0.4269     5.0712
+  0.7710  2.6141   2.6289   2.2393   0.1304      0.0979    0.4616     3.5004
+  1.1582  3.1102   4.9761   2.7171   0.1825      0.1007    0.4892     3.9884
+  0.8023  2.8105   5.1493   2.8923   0.1435      0.1109    0.5034     3.8177
+  0.6427  1.8323   5.7898   2.7021   0.1438      0.1517    0.5394     3.0197
+  1.3271  1.3737   4.6425   2.8598   0.1577      0.2156    0.5814     2.8156
+  1.0123  0.8565  19.4432   2.7663   0.1673      0.2772    0.6127     3.5290
+  0.0100  0.7847  17.2093   2.5635   0.1000      0.3059    0.6213     3.9706
+  1.5686  0.4376  23.6158   2.3318   0.1000      0.4456    0.6322     5.2544
+  0.0100  0.1000  11.9090   3.2505   0.1000      0.5286    0.6470     7.3914
+  0.0100  0.1000   3.2310   9.0088   0.1432      0.5305    0.6495     8.2674
+  0.0100  0.1000  18.7958   3.0057   0.1000      0.5345    0.6766     7.8736
+  0.9484  0.1000   6.2045   2.8294   0.1371      0.5348    0.6783     8.5294
+  0.0100  0.1000  15.2398   2.9498   0.1000      0.5364    0.6789     8.0913
+  0.7596  0.1000  26.8271   2.6132   0.1000      0.5433    0.6871     8.8105
+
+Pareto front  → results/param_tuning/raw_noPU_d4_5_10k/pareto_front.parquet
+CSV snapshot  → results/param_tuning/raw_noPU_d4_5_10k/checkpoint/pareto_front.csv
+Checkpoint    → results/param_tuning/raw_noPU_d4_5_10k/checkpoint/mopso.pkl

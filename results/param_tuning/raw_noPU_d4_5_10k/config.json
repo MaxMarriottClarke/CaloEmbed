@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-07-08T06:44:37",
+  "config_file": "configs/tune.yaml",
+  "pipeline": "raw",
+  "data_dir": "/vols/cms/mm1221/cms/Data/d4_5/10k_mix_5_7_d4_5_tune/hdf5",
+  "n_events": 5000,
+  "backend": "gpu cuda",
+  "n_particles": 40,
+  "n_iterations": 40,
+  "seed": 42,
+  "param_names": [
+    "dc",
+    "rhoc",
+    "do",
+    "dm",
+    "z_scale"
+  ],
+  "lower_bounds": [
+    0.01,
+    0.1,
+    0.01,
+    0.01,
+    0.1
+  ],
+  "upper_bounds": [
+    20.0,
+    20.0,
+    50.0,
+    50.0,
+    1.0
+  ],
+  "default_point": [
+    2.6125,
+    1.4012,
+    5.1886,
+    3.1692,
+    0.55
+  ],
+  "min_lc": 3,
+  "penalty": 1000.0
+}

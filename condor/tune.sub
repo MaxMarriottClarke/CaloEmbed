@@ -27,6 +27,6 @@ error           = logs/condor/tune_$(ClusterId).$(ProcId).err
 request_CPUs    = 1
 request_GPUs    = 1
 request_memory  = 8GB
-+MaxRuntime     = 100000
++MaxRuntime     = 300000
 
 queue

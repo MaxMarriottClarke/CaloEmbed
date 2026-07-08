@@ -21,6 +21,7 @@ build/
 # Results (keep structure, not outputs)
 #results/**
 #!results/.gitkeep
+results/**/checkpoint/
 
 # Nsight profiling outputs
 *.nsys-rep
