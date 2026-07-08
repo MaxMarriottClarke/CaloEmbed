@@ -27,12 +27,13 @@ def _load_run(entry: dict) -> dict:
     summary = json.loads(summary_path.read_text())
     label = entry.get("label") or summary["setup"]["pipeline"]
     outputs = summary["outputs"]
+    run_dir = summary_path.parent
     return {
         "label":      label,
         "summary":    summary,
-        "objects":    pd.read_parquet(outputs["objects"]),
-        "efficiency": pd.read_parquet(outputs["efficiency"]),
-        "events":     pd.read_parquet(outputs["events"]),
+        "objects":    pd.read_parquet(run_dir / Path(outputs["objects"]).name),
+        "efficiency": pd.read_parquet(run_dir / Path(outputs["efficiency"]).name),
+        "events":     pd.read_parquet(run_dir / Path(outputs["events"]).name),
     }
 
 

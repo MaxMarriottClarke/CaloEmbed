@@ -14,12 +14,12 @@ n_energy_bins: 14
 n_ratio_bins: 14
 
 runs:
-  - summary: results/d10/cluestering/summary.json
+  - summary: results/dataframes/d10/cluestering/summary.json
     label: "d10: CLUEstering (tuned to d4_5)"
-  - summary: results/d10/clue3d/summary.json
+  - summary: results/dataframes/d10/clue3d/summary.json
     label: "d10: CLUE3D"
-  - summary: results/d5/cluestering/summary.json
+  - summary: results/dataframes/d5/cluestering/summary.json
     label: "d5: CLUEstering (tuned to d4_5)"
-  - summary: results/d5/clue3d/summary.json
+  - summary: results/dataframes/d5/clue3d/summary.json
     label: "d5: CLUE3D"
 
