@@ -13,14 +13,16 @@ import h5py
 
 @dataclass
 class EventData:
-    coords: np.ndarray       
-    weights: np.ndarray      
-    lc_cp_idx: np.ndarray    
+    coords: np.ndarray
+    weights: np.ndarray
+    lc_cp_idx: np.ndarray
     n_truth_cp: int
-    cp_energies: np.ndarray  
-    cp_pdg_ids: np.ndarray   
+    cp_energies: np.ndarray
+    cp_pdg_ids: np.ndarray
     file_name: str
     event_idx: int
+    lc_eta: np.ndarray = None
+    lc_phi: np.ndarray = None
 
 
 def iter_hdf5_events(path, max_events: int = -1):
@@ -36,6 +38,8 @@ def iter_hdf5_events(path, max_events: int = -1):
         lc_y = f['lc/y'][:]
         lc_z = f['lc/z'][:]
         lc_e = f['lc/energy'][:]
+        lc_eta = f['lc/eta'][:]
+        lc_phi = f['lc/phi'][:]
         lc_cp_idx = f['truth/argmax_cp_idx'][:]
         cp_energy = f['event/cp_raw_energy'][:]
         cp_pdg_id = f['event/cp_pdg_id'][:]
@@ -53,6 +57,8 @@ def iter_hdf5_events(path, max_events: int = -1):
             cp_pdg_ids=cp_pdg_id[cs:ce].copy(),
             file_name=file_name,
             event_idx=ev,
+            lc_eta=lc_eta[ls:le].copy(),
+            lc_phi=lc_phi[ls:le].copy(),
         )
 
 

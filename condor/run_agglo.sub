@@ -1,0 +1,24 @@
+# HTCondor submit file for the GNN + agglomerative clustering pipeline.
+#
+# Submit from the repo root, passing the full argument string:
+#   condor_submit condor/run_agglo.sub args="--run-dir results/training/edgeconv_infonce \
+#       --data /vols/cms/mm1221/cms/Data/d5/100k_mix_sep/hdf5 \
+#       --output results/dataframes/d5/gnn_agglo --threshold 0.052"
+
+universe        = vanilla
+executable      = run_agglo.sh
+arguments       = $(args)
+initialdir      = /vols/cms/mm1221/cms/CaloEmbed
+
+args            =
+
+log             = logs/condor/agglo_$(ClusterId).log
+output          = logs/condor/agglo_$(ClusterId).$(ProcId).out
+error           = logs/condor/agglo_$(ClusterId).$(ProcId).err
+
+request_CPUs    = 1
+request_GPUs    = 1
+request_memory  = 16GB
++MaxRuntime     = 300000
+
+queue

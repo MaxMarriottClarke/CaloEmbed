@@ -17,6 +17,7 @@ dependencies = [
     "awkward",
     "umap-learn",
     "scikit-learn",
+    "scipy",
     "tqdm",
 ]
 
@@ -28,6 +29,8 @@ caloembed-run    = "caloembed.scripts.run_pipeline:main"
 caloembed-plot   = "caloembed.scripts.plot_metrics:main"
 caloembed-clue3d = "caloembed.scripts.run_clue3d_baseline:main"
 caloembed-tune      = "caloembed.scripts.tune_clue:main"
+caloembed-tune-agglo = "caloembed.scripts.tune_agglomerative:main"
+caloembed-run-agglo  = "caloembed.scripts.run_agglomerative:main"
 caloembed-plot-tune = "caloembed.scripts.plot_tune:main"
 caloembed-display   = "caloembed.scripts.plot_3d_events:main"
 

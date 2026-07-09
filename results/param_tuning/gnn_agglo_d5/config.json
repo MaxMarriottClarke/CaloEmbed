@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-07-09T17:56:37",
+  "config_file": "configs/tune_agglo.yaml",
+  "run_dir": "results/training/edgeconv_infonce",
+  "data_dir": "/vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5",
+  "n_events": 500,
+  "linkage": "average",
+  "metric": "cosine",
+  "sweep": {
+    "min": 0.002,
+    "max": 0.5,
+    "n_points": 40,
+    "spacing": "log"
+  },
+  "min_lc": 3,
+  "penalty": 1000.0,
+  "suggested_threshold": 0.05190387046833238,
+  "suggested_objectives": {
+    "max_purity_score": 0.39660426628962453,
+    "min_efficiency": 0.45109597886519687,
+    "penalized_ratio": 2.2631809523809525
+  }
+}

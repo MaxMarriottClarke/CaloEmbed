@@ -1,0 +1,33 @@
+# Tune the agglomerative-clustering distance threshold on GNN embeddings.
+#
+# Usage:
+#   caloembed-tune-agglo --config configs/tune_agglo.yaml
+
+model:
+  run_dir: results/training/edgeconv_infonce   # config.yaml + best.pt + splits.json
+
+data:
+  dir: /vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5
+  n_events: 500                                 # taken from the val split
+
+clustering:
+  linkage: average    # UPGMA — does not assume Euclidean geometry
+  metric:  cosine     # matches the InfoNCE (cosine-similarity) objective
+
+# 1D grid over the cosine distance threshold. The fragment->merge transition
+# lives at small distances (~0.01-0.2 for these embeddings), so sweep in log
+# space to concentrate resolution there; above ~0.3 events collapse to one cluster.
+sweep:
+  min:      0.002
+  max:      0.5
+  n_points: 40
+  spacing:  log       # linear | log
+
+metrics:
+  min_lc: 3
+
+objectives:
+  under_cluster_penalty: 1000.0
+
+output:
+  dir: results/param_tuning/gnn_agglo_d5
