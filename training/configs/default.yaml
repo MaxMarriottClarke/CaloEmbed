@@ -1,0 +1,37 @@
+# EdgeConv (static kNN in latent space) + supervised InfoNCE on d5/100k_mix.
+data:
+  dir: /vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5/
+  features: [x, y, z, energy, eta, phi]
+  max_files: -1        # -1 = all files
+  max_events: -1       # per-split cap, -1 = all
+  val_fraction: 0.1    # file-level split, stratified by n_cp, deterministic in train.seed
+  test_fraction: 0.0   # held out entirely (recorded in <output>/splits.json, never loaded)
+  batch_size: 32
+  num_workers: 2
+
+model:
+  name: edgeconv       # see src/models
+  hidden_dim: 64
+  num_layers: 4
+  out_dim: 16
+  k: 20
+  dropout: 0.1
+
+loss:
+  name: infonce        # see src/losses
+  temperature: 0.1
+
+optim:
+  lr: 3.0e-4
+  weight_decay: 0.0
+  scheduler: cosine    # none | step | cosine
+  # step scheduler options: step_size: 25, gamma: 0.5
+
+train:
+  epochs: 50
+  amp: true
+  grad_clip: null      # e.g. 1.0 to enable
+  seed: 42
+
+output:
+  dir: /vols/cms/mm1221/cms/CaloEmbed/results/training/edgeconv_infonce

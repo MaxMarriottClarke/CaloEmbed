@@ -1,0 +1,29 @@
+# HTCondor submit file for GNN embedding training.
+#
+# Submit from the repo root:
+#   condor_submit training/condor/train.sub
+#
+# Override config (path relative to training/, where run_train.sh executes):
+#   condor_submit training/condor/train.sub config=configs/default.yaml
+#
+# Resume a previous run:
+#   condor_submit training/condor/train.sub extra_args=--resume
+
+universe        = vanilla
+executable      = training/run_train.sh
+arguments       = --config $(config) $(extra_args)
+initialdir      = /vols/cms/mm1221/cms/CaloEmbed
+
+config          = configs/default.yaml
+extra_args      =
+
+log             = logs/condor/train_$(ClusterId).log
+output          = logs/condor/train_$(ClusterId).$(ProcId).out
+error           = logs/condor/train_$(ClusterId).$(ProcId).err
+
+# request_CPUs    = 4
+request_GPUs    = 1
+request_memory  = 16GB
++MaxRuntime     = 300000
+
+queue
