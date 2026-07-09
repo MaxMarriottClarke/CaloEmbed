@@ -10,3 +10,9 @@ Loading 5000 events from /vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5 ...
 Config snapshot: results/param_tuning/raw_noPU_d5_10k/config.json
 Starting MOPSO: 40 particles × 60 iterations
 Timing first iteration (40 particles × 5000 events)...
+First iteration:  831.9s
+Estimated total:  60 iters × 831.9s/iter = 13h 51m  (finish ~22:17)
+
+  iter  3/60  789.8s/iter  elapsed 39m 29s  remaining ~12h 30m  pareto 4
+  iter  6/60  790.1s/iter  elapsed 1h 19m  remaining ~11h 51m  pareto 6
+  iter  9/60  797.7s/iter  elapsed 1h 59m  remaining ~11h 18m  pareto 10
