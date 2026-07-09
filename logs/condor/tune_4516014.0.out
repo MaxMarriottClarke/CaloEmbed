@@ -16,3 +16,13 @@ Estimated total:  60 iters × 831.9s/iter = 13h 51m  (finish ~22:17)
   iter  3/60  789.8s/iter  elapsed 39m 29s  remaining ~12h 30m  pareto 4
   iter  6/60  790.1s/iter  elapsed 1h 19m  remaining ~11h 51m  pareto 6
   iter  9/60  797.7s/iter  elapsed 1h 59m  remaining ~11h 18m  pareto 10
+  iter 12/60  801.8s/iter  elapsed 2h 40m  remaining ~10h 41m  pareto 19
+  iter 15/60  812.6s/iter  elapsed 3h 21m  remaining ~10h 09m  pareto 33
+  iter 18/60  820.6s/iter  elapsed 4h 02m  remaining ~9h 34m  pareto 49
+  iter 21/60  825.4s/iter  elapsed 4h 44m  remaining ~8h 56m  pareto 57
+  iter 24/60  832.7s/iter  elapsed 5h 26m  remaining ~8h 19m  pareto 77
+  iter 27/60  837.1s/iter  elapsed 6h 08m  remaining ~7h 40m  pareto 89
+  iter 30/60  839.5s/iter  elapsed 6h 50m  remaining ~6h 59m  pareto 98
+  iter 33/60  844.5s/iter  elapsed 7h 33m  remaining ~6h 20m  pareto 78
+  iter 36/60  843.5s/iter  elapsed 8h 14m  remaining ~5h 37m  pareto 84
+  iter 39/60  842.4s/iter  elapsed 8h 56m  remaining ~4h 54m  pareto 86
