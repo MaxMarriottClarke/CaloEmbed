@@ -1,0 +1,36 @@
+{
+  "run": {
+    "timestamp": "2026-07-10T07:13:25",
+    "git_hash": "dbc7cb2b8f6c647eeb6ad6599ede108d759abc32",
+    "output_dir": "results/dataframes/d10/gnn_agglo"
+  },
+  "setup": {
+    "pipeline": "gnn_agglo",
+    "n_events": 99800,
+    "n_files": 998,
+    "gnn": {
+      "run_dir": "results/training/edgeconv_infonce",
+      "data": "/vols/cms/mm1221/cms/Data/d10/100k_mix_sep/hdf5",
+      "threshold": 0.052,
+      "linkage": "average",
+      "metric": "cosine"
+    },
+    "thresholds": {
+      "min_lc": 3,
+      "purity_threshold": 0.2,
+      "efficiency_threshold": 0.5
+    }
+  },
+  "results": {
+    "n_reco_objects": 749266,
+    "mean_purity": 0.7289093592929614,
+    "mean_efficiency": 0.8547355445988346,
+    "mean_number_ratio": 1.7067308664948944,
+    "mean_ms": 39.35879418531271
+  },
+  "outputs": {
+    "objects": "results/dataframes/d10/gnn_agglo/objects.parquet",
+    "efficiency": "results/dataframes/d10/gnn_agglo/efficiency.parquet",
+    "events": "results/dataframes/d10/gnn_agglo/events.parquet"
+  }
+}
