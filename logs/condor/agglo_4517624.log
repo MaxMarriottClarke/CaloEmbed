@@ -1,0 +1,20 @@
+000 (4517624.000.000) 2026-07-10 05:10:34 Job submitted from host: <146.179.108.134:9618?addrs=146.179.108.134-9618+[2a0c-5bc0-88-111-216-3eff-fe7f-207]-9618&alias=htcmaster00.hep.ph.ic.ac.uk&noUDP&sock=schedd_45584_6934>
+...
+001 (4517624.000.000) 2026-07-10 05:12:35 Job executing on host: <146.179.108.47:9618?addrs=146.179.108.47-9618+[2a0c-5bc0-88-111-632-1ff-fee0-a7a8]-9618&alias=lxdgpu01.hep.ph.ic.ac.uk&noUDP&sock=startd_2419_cfaf>
+	SlotName: slot1_1@lxdgpu01.hep.ph.ic.ac.uk
+	AvailableGPUs = { GPUs_GPU_f49fbfc7 }
+	CondorScratchDir = "/srv/localstage/condor/dir_48345"
+	Cpus = 32
+	Disk = 1507458923
+	GPUs = 1
+	GPUs_GPU_f49fbfc7 = [ Id = "GPU-f49fbfc7"; ClockMhz = 1800.0; Capability = 8.6; CoresPerCU = 128; DeviceName = "NVIDIA RTX A6000"; DeviceUuid = "f49fbfc7-d356-8a7c-f7e6-7743f70cfe2b"; ECCEnabled = true; ComputeUnits = 84; NvidiaDriver = "610.43.02"; DriverVersion = 13.3; DevicePciBusId = "0000:83:00.0"; GlobalMemoryMb = 45485; MaxSupportedVersion = 13030 ]
+	Memory = 128075
+...
+006 (4517624.000.000) 2026-07-10 05:12:43 Image size of job updated: 5772
+	6  -  MemoryUsage of job (MB)
+	5772  -  ResidentSetSize of job (KB)
+...
+006 (4517624.000.000) 2026-07-10 05:14:43 Image size of job updated: 370244
+	362  -  MemoryUsage of job (MB)
+	370244  -  ResidentSetSize of job (KB)
+...

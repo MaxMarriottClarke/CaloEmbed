@@ -10,8 +10,6 @@ executable      = run_agglo.sh
 arguments       = $(args)
 initialdir      = /vols/cms/mm1221/cms/CaloEmbed
 
-args            =
-
 log             = logs/condor/agglo_$(ClusterId).log
 output          = logs/condor/agglo_$(ClusterId).$(ProcId).out
 error           = logs/condor/agglo_$(ClusterId).$(ProcId).err
