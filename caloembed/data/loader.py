@@ -77,3 +77,51 @@ def iter_hdf5_dir(dir_path, max_events: int = -1, max_files: int = -1):
             total += 1
             if max_events >= 0 and total >= max_events:
                 return
+
+
+def iter_hdf5_files(file_paths, max_events: int = -1):
+    """Yield EventData across a given list of HDF5 files, in the given order."""
+    total = 0
+    for fp in file_paths:
+        if max_events >= 0 and total >= max_events:
+            return
+        remaining = -1 if max_events < 0 else max_events - total
+        for event in iter_hdf5_events(fp, max_events=remaining):
+            yield event
+            total += 1
+            if max_events >= 0 and total >= max_events:
+                return
+
+
+def select_files_by_n_cp(dir_path, n_events_per_ncp: dict, seed: int = 0):
+    """Randomly pick whole HDF5 files to hit target event counts per n_cp bucket.
+
+    Relies on each file in the d5 100k_mix production having a single,
+    uniform n_cp value across its ~100 events (true as of this dataset —
+    verified by scanning all 1000 files). Only one event per file is read to
+    determine its bucket, so this is cheap even over the full directory.
+    Requested counts are rounded up to whole files.
+    """
+    files = sorted(Path(dir_path).glob("*.h5"))
+    by_ncp: dict[int, list[Path]] = {}
+    for fp in files:
+        with h5py.File(fp, "r") as f:
+            n_cp = int(f["event/n_cp"][0])
+        by_ncp.setdefault(n_cp, []).append(fp)
+
+    rng = np.random.default_rng(seed)
+    selected: list[Path] = []
+    for n_cp, n_events in n_events_per_ncp.items():
+        pool = by_ncp.get(n_cp, [])
+        events_per_file = 100
+        n_files = -(-n_events // events_per_file)  # ceil
+        if n_files > len(pool):
+            raise ValueError(
+                f"Requested {n_events} events at n_cp={n_cp} needs {n_files} files "
+                f"but only {len(pool)} are available in {dir_path}"
+            )
+        idx = rng.choice(len(pool), size=n_files, replace=False)
+        selected.extend(pool[i] for i in idx)
+
+    rng.shuffle(selected)
+    return selected

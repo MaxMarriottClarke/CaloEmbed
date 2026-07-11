@@ -8,13 +8,13 @@ data:
 
 clustering:
   backend: auto    # auto → gpu cuda > cpu openmp > cpu serial
-  dc: 1.6386
-  rhoc: 2.9811
-  do: 12.63
-  dm: 2.62
+  dc: 1.1784
+  rhoc: 2.2580
+  do: 3.9951
+  dm: 2.5715
   ppbin: 128
   metric: weighted_chebyshev
-  metric_params: [1.0, 1.0, 0.3546]   
+  metric_params: [1.0, 1.0, 0.1]   
   block_size: 1024
   device_id: 0
 

@@ -30,7 +30,7 @@ import numpy as np
 import patatune
 import yaml
 
-from caloembed.data.loader import iter_hdf5_dir
+from caloembed.data.loader import iter_hdf5_dir, iter_hdf5_files, select_files_by_n_cp
 from caloembed.clustering.clue import run_clue, probe_backend
 from caloembed.metrics.physics import compute_purity, compute_efficiency
 
@@ -61,12 +61,14 @@ def _load_config(path: str) -> dict:
 
 
 def _penalised_ratio(ratio: float, penalty: float) -> float:
+    # if ratio = 1 all good
     if ratio >= 1.0:
         return ratio
     return 1.0 + penalty * (1.0 - ratio)
 
 
 def _fmt_duration(seconds: float) -> str:
+    # prints time in appropriate format
     if seconds < 60:
         return f"{seconds:.0f}s"
     m, s = divmod(int(seconds), 60)
@@ -184,7 +186,7 @@ def main(argv=None):
     default_point = [params_cfg[p]["default"] for p in param_names]
 
     patatune.Randomizer.rng = np.random.default_rng(mopso_cfg["seed"])
-    patatune.Logger.setLevel("WARNING")  
+    patatune.Logger.setLevel("WARNING")
 
     patatune.FileManager.saving_enabled  = True
     patatune.FileManager.headers_enabled = True
@@ -198,11 +200,22 @@ def main(argv=None):
 
     transform = _get_transform(pipeline)
     data_dir  = data_cfg["dir"]
-    n_events  = data_cfg["n_events"]
-    print(f"Loading {n_events} events from {data_dir} ...")
+    select_by_ncp = data_cfg.get("select_by_ncp")
+    if select_by_ncp:
+        select_seed = data_cfg.get("select_seed", mopso_cfg["seed"])
+        counts = {int(k): int(v) for k, v in select_by_ncp.items()}
+        files = select_files_by_n_cp(data_dir, counts, seed=select_seed)
+        print(f"Selecting {len(files)} files by n_cp (target counts {counts}) "
+              f"from {data_dir} ...")
+        event_iter = iter_hdf5_files(files)
+    else:
+        n_events = data_cfg["n_events"]
+        print(f"Loading {n_events} events from {data_dir} ...")
+        event_iter = iter_hdf5_dir(dir_path=data_dir, max_events=n_events)
+
     t0 = time.perf_counter()
     events: list[_Event] = []
-    for raw in iter_hdf5_dir(dir_path=data_dir, max_events=n_events):
+    for raw in event_iter:
         coords, weights = transform(raw)
         events.append(_Event(
             coords=coords,

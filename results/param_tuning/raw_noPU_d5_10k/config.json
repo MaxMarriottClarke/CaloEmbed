@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-09T08:11:29",
+  "timestamp": "2026-07-10T13:35:00",
   "config_file": "configs/tune.yaml",
   "pipeline": "raw",
   "data_dir": "/vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5",

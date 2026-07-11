@@ -1,0 +1,71 @@
+# CLUE3D parameter tuning with MOPSO — stratified event selection.
+#
+# Unlike tune.yaml (which reads the first N events in filename order — biased,
+# since each HDF5 file has a single fixed n_cp and files sort lexicographically
+# rather than randomly), this samples whole files by n_cp so the tuning set is
+# deliberately weighted toward higher-multiplicity (harder) events, with a
+# smaller slice of n_cp=3 for coverage. select_by_ncp values are target event
+# counts, rounded up to whole files (100 events/file).
+#
+# Usage:
+#   caloembed-tune --config configs/tune_d5_strat.yaml
+#   caloembed-tune --config configs/tune_d5_strat.yaml --resume
+
+pipeline: raw
+
+data:
+  dir: /vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5
+  select_by_ncp:
+    3: 300
+    5: 600
+    6: 600
+    7: 600
+  select_seed: 42
+
+output:
+  dir: results/param_tuning/raw_noPU_d5_strat2k
+
+clustering:
+  backend: auto       # auto → gpu cuda > cpu openmp > cpu serial
+  ppbin: 128
+  block_size: 1024
+  device_id: 0
+
+metrics:
+  min_lc: 3
+
+# Parameters to tune.
+parameters:
+  dc:
+    lower:   0.01
+    upper:   20.0
+    default: 2.6125
+  rhoc:
+    lower:   0.1
+    upper:   20.0
+    default: 1.4012
+  do:
+    lower:   0.01
+    upper:  50.0
+    default: 5.1886
+  dm:
+    lower:   0.01
+    upper:   50.0
+    default: 3.1692
+  z_scale:
+    lower:   0.1
+    upper:   1.0
+    default: 0.55
+
+mopso:
+  n_particles:          40
+  n_iterations:        60
+  seed:                 42
+  inertia_weight:      0.5
+  cognitive_coefficient: 1.5
+  social_coefficient:   2.0
+  topology: lower_weighted_crowding_distance
+  initial_position: random
+
+objectives:
+  under_cluster_penalty: 1000.0

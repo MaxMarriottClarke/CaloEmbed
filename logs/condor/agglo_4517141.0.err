@@ -1,8 +1,0 @@
-usage: run_agglomerative.py [-h] --run-dir RUN_DIR --data DATA --output OUTPUT
-                            --threshold THRESHOLD [--linkage LINKAGE]
-                            [--metric METRIC] [--min-lc MIN_LC]
-                            [--purity-threshold PURITY_THRESHOLD]
-                            [--efficiency-threshold EFFICIENCY_THRESHOLD]
-                            [--max-events MAX_EVENTS] [--max-files MAX_FILES]
-                            [--device DEVICE]
-run_agglomerative.py: error: the following arguments are required: --run-dir, --data, --output, --threshold
