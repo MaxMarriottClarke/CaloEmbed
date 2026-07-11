@@ -138,6 +138,19 @@ def _plot_number_ratio(ax, runs, bins, colors):
     ax.set_title("Number ratio")
 
 
+def _clue_params_title(runs: list) -> str | None:
+    """If all runs that have CLUEstering params agree, format them for the figure title."""
+    clue_params = [r["summary"]["setup"].get("clue") for r in runs]
+    clue_params = [c for c in clue_params if c]
+    if not clue_params:
+        return None
+    first = clue_params[0]
+    if not all(c == first for c in clue_params):
+        return None
+    parts = [f"{k}={v}" for k, v in first.items() if k != "backend"]
+    return "CLUEstering: " + ", ".join(parts)
+
+
 def _finish_ax(ax):
     ax.legend(frameon=True, fontsize=9)
     ax.grid(True, alpha=0.25, linestyle="--")
@@ -186,6 +199,10 @@ def main(argv=None):
         for ax in axes[row]:
             ax.set_title(f"{label}: {ax.get_title()}")
             _finish_ax(ax)
+
+    clue_title = _clue_params_title(runs)
+    if clue_title:
+        fig.suptitle(clue_title, fontsize=10, y=1.02)
 
     out_path = out_dir / "metrics.png"
     fig.savefig(out_path, bbox_inches="tight", dpi=150)

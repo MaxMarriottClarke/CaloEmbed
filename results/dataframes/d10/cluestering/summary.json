@@ -1,7 +1,7 @@
 {
   "run": {
-    "timestamp": "2026-07-08T19:35:17",
-    "git_hash": "ecc4b8921bad60e1061c9db3813a1e9b1be695fc",
+    "timestamp": "2026-07-11T14:48:23",
+    "git_hash": "37994ff3475aec63d5b1bc0d2873f9da91de7eee",
     "output_dir": "results/dataframes/d10/cluestering"
   },
   "setup": {
@@ -9,16 +9,16 @@
     "n_events": 99800,
     "n_files": 998,
     "clue": {
-      "dc": 1.6386,
-      "rhoc": 2.9811,
-      "do": 12.63,
-      "dm": 2.62,
+      "dc": 1.1784,
+      "rhoc": 2.258,
+      "do": 3.9951,
+      "dm": 2.5715,
       "ppbin": 128,
       "metric": "weighted_chebyshev",
       "metric_params": [
         1.0,
         1.0,
-        0.3546
+        0.1
       ],
       "backend": "cpu openmp"
     },
@@ -29,11 +29,11 @@
     }
   },
   "results": {
-    "n_reco_objects": 725719,
-    "mean_purity": 0.9946425544873428,
-    "mean_efficiency": 0.8599327655759749,
-    "mean_number_ratio": 1.6248222158602919,
-    "mean_clue_ms": 10.048798991553106
+    "n_reco_objects": 980786,
+    "mean_purity": 0.9829922123684474,
+    "mean_efficiency": 0.9528619453160018,
+    "mean_number_ratio": 2.1851060931386583,
+    "mean_clue_ms": 5.692678807775552
   },
   "outputs": {
     "objects": "results/dataframes/d10/cluestering/objects.parquet",

@@ -15,15 +15,15 @@ n_ratio_bins: 14
 
 runs:
   - summary: results/dataframes/d10/cluestering/summary.json
-    label: "d10: CLUEstering (tuned to d4_5)"
+    label: "d10: CLUEstering (tuned to d5)"
   - summary: results/dataframes/d10/clue3d/summary.json
     label: "d10: CLUE3D"
-  - summary: results/dataframes/d10/gnn_agglo/summary.json
-    label: "d10: GNN"
+      #  - summary: results/dataframes/d10/gnn_agglo/summary.json
+      #    label: "d10: GNN"
   - summary: results/dataframes/d5/cluestering/summary.json
-    label: "d5: CLUEstering (tuned to d4_5)"
+    label: "d5: CLUEstering (tuned to d5)"
   - summary: results/dataframes/d5/clue3d/summary.json
     label: "d5: CLUE3D"
-  - summary: results/dataframes/d5/gnn_agglo/summary.json
-    label: "d5: GNN"
+      #  - summary: results/dataframes/d5/gnn_agglo/summary.json
+      #    label: "d5: GNN"
 

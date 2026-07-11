@@ -2,7 +2,7 @@
 pipeline: raw
 
 data:
-  dir: /vols/cms/mm1221/cms/Data/d10/100k_mix_sep/hdf5/
+  dir: /vols/cms/mm1221/cms/Data/d5/100k_mix_sep/hdf5/
   max_events: -1   # -1 = all events
   max_files: -1    # -1 = all files
 
@@ -24,4 +24,4 @@ metrics:
   efficiency_threshold: 0.5
 
 output:
-  dir: results/dataframes/d10/cluestering
+  dir: results/dataframes/d5/cluestering
