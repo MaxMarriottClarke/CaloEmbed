@@ -1,5 +1,5 @@
 data:
-  dir: /vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5/
+  dir: /vols/cms/mm1221/cms/Data/d7/1M_2_10_pi_e_d7p5_E10_300/hdf5/
   features:
   - x
   - y
@@ -15,9 +15,9 @@ data:
   num_workers: 2
 model:
   name: edgeconv
-  hidden_dim: 64
+  hidden_dim: 128
   num_layers: 4
-  out_dim: 16
+  out_dim: 3
   k: 20
   dropout: 0.1
 loss:

@@ -1,0 +1,13 @@
+Host : lxdgpu01.hep.ph.ic.ac.uk
+Date : Mon Jul 13 09:58:33 BST 2026
+Args : --config configs/default.yaml
+GPU  : NVIDIA RTX A6000, 46068 MiB
+Data: 900000 train / 99900 val events (9000/999/0 train/val/test files, test never loaded), features=['x', 'y', 'z', 'energy', 'eta', 'phi']
+Model: edgeconv (225,475 params) | loss: infonce | device: cuda
+epoch 1/50  train 6.481391  val 6.386885  lr 3.00e-04  (9303s)  *best*
+epoch 2/50  train 6.391826  val 6.353312  lr 3.00e-04  (9413s)  *best*
+epoch 3/50  train 6.370643  val 6.338293  lr 2.99e-04  (9251s)  *best*
+epoch 4/50  train 6.362166  val 6.336601  lr 2.97e-04  (9297s)  *best*
+epoch 5/50  train 6.357435  val 6.332902  lr 2.95e-04  (9345s)  *best*
+epoch 6/50  train 6.354375  val 6.333961  lr 2.93e-04  (9386s)
+epoch 7/50  train 6.352348  val 6.332246  lr 2.89e-04  (9421s)  *best*

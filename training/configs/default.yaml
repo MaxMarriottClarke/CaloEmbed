@@ -1,6 +1,6 @@
 # EdgeConv (static kNN in latent space) + supervised InfoNCE on d5/100k_mix.
 data:
-  dir: /vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5/
+  dir: /vols/cms/mm1221/cms/Data/d7/1M_2_10_pi_e_d7p5_E10_300/hdf5/
   features: [x, y, z, energy, eta, phi]
   max_files: -1        # -1 = all files
   max_events: -1       # per-split cap, -1 = all
@@ -11,9 +11,9 @@ data:
 
 model:
   name: edgeconv       # see src/models
-  hidden_dim: 64
+  hidden_dim: 128
   num_layers: 4
-  out_dim: 16
+  out_dim: 3
   k: 20
   dropout: 0.1
 

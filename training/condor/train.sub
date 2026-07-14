@@ -8,6 +8,12 @@
 #
 # Resume a previous run:
 #   condor_submit training/condor/train.sub extra_args=--resume
+#
+# To land on the best currently-available GPU node, submit via
+# training/condor/submit_best_gpu.sh instead of calling condor_submit
+# directly — see that script for why (this pool's own negotiator policy
+# always prefers the smallest whole-node GPU box, so a plain `rank`
+# expression here can't reliably pick the best free GPU on its own).
 
 universe        = vanilla
 executable      = training/run_train.sh
@@ -24,6 +30,18 @@ error           = logs/condor/train_$(ClusterId).$(ProcId).err
 # request_CPUs    = 4
 request_GPUs    = 1
 request_memory  = 16GB
+
+# target_gpu_host: quoted hostname to pin the job to, e.g.
+# target_gpu_host="\"lxdgpu00.hep.ph.ic.ac.uk\"" (set by submit_best_gpu.sh).
+# Left undefined, $(target_gpu_host:Machine) falls back to the tautology
+# "Machine == Machine" so the clause is a no-op and matches any GPU node.
+# NOTE: must NOT be assigned as a plain macro anywhere in this file — a
+# same-named in-file assignment silently overrides command-line overrides.
+requirements    = (TARGET.Arch == "X86_64") && (TARGET.OpSys == "LINUX") && (TARGET.Disk >= RequestDisk) && (TARGET.Memory >= RequestMemory) && (TARGET.GPUs >= RequestGPUs) && ((TARGET.FileSystemDomain == MY.FileSystemDomain) || (TARGET.HasFileTransfer)) && (Machine == $(target_gpu_host:Machine))
+
+# Best-effort preference only — see note above on why this alone won't
+# reliably pick the best free GPU on this pool.
+rank            = (GPUs_Capability * 100000) + GPUs_GlobalMemoryMb
 +MaxRuntime     = 300000
 
 queue
