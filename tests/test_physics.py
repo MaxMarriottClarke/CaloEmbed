@@ -42,7 +42,7 @@ def _reference_score(cluster_ids, weights, lc_cp_idx, n_cp, reco_id):
     return best
 
 
-# ── basic correctness ─────────────────────────────────────────────────────────
+# basic correctness
 
 def test_perfect_purity():
     # All LCs in cluster 0 are owned by CP 0.

@@ -33,6 +33,7 @@ caloembed-tune-agglo = "caloembed.scripts.tune_agglomerative:main"
 caloembed-run-agglo  = "caloembed.scripts.run_agglomerative:main"
 caloembed-plot-tune = "caloembed.scripts.plot_tune:main"
 caloembed-display   = "caloembed.scripts.plot_3d_events:main"
+caloembed-plot-loss = "caloembed.scripts.plot_loss:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
