@@ -14,7 +14,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ── micromamba ────────────────────────────────────────────────────────────────
 export MAMBA_ROOT_PREFIX="${HOME}/micromamba"
 eval "$("${HOME}/bin/micromamba" shell hook --shell bash)"
-micromamba activate caloembed
+micromamba activate caloembed-py312
 
 source /vols/software/cuda/setup.sh
 # ── make the local package importable ────────────────────────────────────────

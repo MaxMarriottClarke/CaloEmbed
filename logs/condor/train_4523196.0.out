@@ -16,3 +16,8 @@ epoch 9/50  train 6.349593  val 6.331311  lr 2.81e-04  (9499s)
 epoch 10/50  train 6.348666  val 6.330809  lr 2.77e-04  (9520s)
 epoch 11/50  train 6.347943  val 6.330426  lr 2.71e-04  (9537s)
 epoch 12/50  train 6.347319  val 6.331994  lr 2.66e-04  (9561s)
+epoch 13/50  train 6.346776  val 6.327802  lr 2.59e-04  (9596s)  *best*
+epoch 14/50  train 6.346253  val 6.327202  lr 2.53e-04  (9611s)  *best*
+epoch 15/50  train 6.345696  val 6.327284  lr 2.46e-04  (9621s)
+epoch 16/50  train 6.345176  val 6.326268  lr 2.38e-04  (9618s)  *best*
+epoch 17/50  train 6.344711  val 6.329301  lr 2.30e-04  (9655s)

@@ -1,26 +1,33 @@
 # CaloEmbed conda environment
 # Clone pygnn (has torch 2.5, PyG, h5py, awkward, uproot) then add missing packages:
 #
-#   micromamba create -n caloembed --clone pygnn
-#   micromamba activate caloembed
-#   micromamba install -n caloembed -c conda-forge scikit-learn matplotlib tqdm pyyaml
+#   micromamba create -n caloembed-py312 --clone pygnn
+#   micromamba activate caloembed-py312
+#   micromamba install -n caloembed-py312 -c conda-forge scikit-learn matplotlib tqdm pyyaml
 #   pip install umap-learn pytest h5py pyarrow
-#   pip install -e /vols/cms/mm1221/cms/CaloEmbed/CLUEstering/
+#   pip install -e /vols/cms/mm1221/cms/CaloEmbed/CLUEstering/ \
+#       --config-settings=cmake.define.CMAKE_CUDA_ARCHITECTURES="60;70;86"  # P100;V100;A6000
 #   pip install -e /vols/cms/mm1221/cms/CaloEmbed/
+#
+# CLUEstering's CMake build does not set CMAKE_CUDA_ARCHITECTURES itself, so the
+# arch flag above must be passed explicitly or the GPU backend silently falls
+# back to whatever nvcc's default targets. Also build serially (add
+# --config-settings=build.tool-args="-j1") on this shared node — it enforces a
+# 16 GiB per-user memory cgroup and concurrent CUDA+OpenMP compiles get OOM-killed.
 #
 # Preprocessing (ROOT → HDF5) must use system python3 — ROOT is compiled against
 # system Python 3.9 and cannot be imported from this env. See env.sh.
 #
 # This file documents the full intended package set for reproducibility.
 
-name: caloembed
+name: caloembed-py312
 channels:
   - pytorch
   - nvidia
   - conda-forge
   - defaults
 dependencies:
-  - python=3.11
+  - python=3.12
   # Core numerics
   - numpy
   - scipy
