@@ -1,2 +1,52 @@
 000 (4585926.000.000) 2026-07-22 09:34:03 Job submitted from host: <146.179.108.134:9618?addrs=146.179.108.134-9618&alias=htcmaster00.hep.ph.ic.ac.uk&noUDP&sock=schedd_951_e2a7>
 ...
+001 (4585926.000.000) 2026-07-22 17:57:07 Job executing on host: <146.179.108.47:9618?addrs=146.179.108.47-9618+[2a0c-5bc0-88-111-632-1ff-fee0-a7a8]-9618&alias=lxdgpu01.hep.ph.ic.ac.uk&noUDP&sock=startd_2404_85c3>
+	SlotName: slot1_1@lxdgpu01.hep.ph.ic.ac.uk
+	AvailableGPUs = { GPUs_GPU_f49fbfc7 }
+	CondorScratchDir = "/srv/localstage/condor/dir_186368"
+	Cpus = 32
+	Disk = 1507458923
+	GPUs = 1
+	GPUs_GPU_f49fbfc7 = [ Id = "GPU-f49fbfc7"; ClockMhz = 1800.0; Capability = 8.6; CoresPerCU = 128; DeviceName = "NVIDIA RTX A6000"; DeviceUuid = "f49fbfc7-d356-8a7c-f7e6-7743f70cfe2b"; ECCEnabled = true; ComputeUnits = 84; NvidiaDriver = "610.43.02"; DriverVersion = 13.3; DevicePciBusId = "0000:83:00.0"; GlobalMemoryMb = 45485; MaxSupportedVersion = 13030 ]
+	Memory = 128075
+...
+006 (4585926.000.000) 2026-07-22 17:57:16 Image size of job updated: 6216
+	7  -  MemoryUsage of job (MB)
+	6216  -  ResidentSetSize of job (KB)
+...
+006 (4585926.000.000) 2026-07-22 17:59:17 Image size of job updated: 315968
+	309  -  MemoryUsage of job (MB)
+	315968  -  ResidentSetSize of job (KB)
+...
+006 (4585926.000.000) 2026-07-22 18:01:18 Image size of job updated: 407440
+	398  -  MemoryUsage of job (MB)
+	407440  -  ResidentSetSize of job (KB)
+...
+006 (4585926.000.000) 2026-07-22 18:03:19 Image size of job updated: 408224
+	399  -  MemoryUsage of job (MB)
+	408224  -  ResidentSetSize of job (KB)
+...
+006 (4585926.000.000) 2026-07-22 18:07:19 Image size of job updated: 408336
+	399  -  MemoryUsage of job (MB)
+	408336  -  ResidentSetSize of job (KB)
+...
+006 (4585926.000.000) 2026-07-22 18:09:19 Image size of job updated: 15348600
+	14989  -  MemoryUsage of job (MB)
+	15348600  -  ResidentSetSize of job (KB)
+...
+006 (4585926.000.000) 2026-07-22 18:11:20 Image size of job updated: 45250572
+	43886  -  MemoryUsage of job (MB)
+	44938580  -  ResidentSetSize of job (KB)
+...
+006 (4585926.000.000) 2026-07-22 18:13:21 Image size of job updated: 45250572
+	43891  -  MemoryUsage of job (MB)
+	44943788  -  ResidentSetSize of job (KB)
+...
+006 (4585926.000.000) 2026-07-22 18:15:22 Image size of job updated: 45250572
+	43892  -  MemoryUsage of job (MB)
+	44944436  -  ResidentSetSize of job (KB)
+...
+006 (4585926.000.000) 2026-07-22 18:17:22 Image size of job updated: 45250572
+	43892  -  MemoryUsage of job (MB)
+	44944980  -  ResidentSetSize of job (KB)
+...

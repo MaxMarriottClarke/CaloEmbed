@@ -1,0 +1,8 @@
+Host : lxdgpu01.hep.ph.ic.ac.uk
+Date : Wed Jul 22 17:57:14 BST 2026
+Args : --config configs/geo_transformer_a6000_500k.yaml
+GPU  : NVIDIA RTX A6000, 46068 MiB
+torch: 2.5.0 | CUDA cap 8.6 | precision: bf16
+Data: 449900 train / 50100 val events (4499/501/0 train/val/test files, test never loaded), features=['x', 'y', 'z', 'energy', 'eta', 'sin_phi', 'cos_phi']
+Batching: size-bucketed (pool = 50 batches)
+Model: geo_transformer (993,707 params) | loss: discriminative | device: cuda
