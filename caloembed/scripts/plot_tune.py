@@ -64,13 +64,16 @@ def _plot_pareto_objectives(df: pd.DataFrame, out_path: Path):
 
 def _plot_pareto_parameters(df: pd.DataFrame, out_path: Path):
     """Each parameter's value across the Pareto front, coloured by efficiency."""
-    param_cols  = ["dc", "rhoc", "do", "dm", "z_scale"]
-    param_labels = ["dc", "rhoc", "do", "dm", "z-scale"]
+    all_param_cols  = {"dc": "dc", "rhoc": "rhoc", "do": "do", "dm": "dm", "z_scale": "z-scale"}
+    param_cols   = [c for c in all_param_cols if c in df.columns]
+    param_labels = [all_param_cols[c] for c in param_cols]
 
     x   = df["max_purity_score"].to_numpy()
     eff = df["min_efficiency"].to_numpy()
 
-    fig, axes = plt.subplots(1, 5, figsize=(18, 3.5))
+    fig, axes = plt.subplots(1, len(param_cols), figsize=(3.6 * len(param_cols), 3.5))
+    if len(param_cols) == 1:
+        axes = [axes]
     fig.subplots_adjust(wspace=0.38)
 
     for ax, col, label in zip(axes, param_cols, param_labels):
@@ -164,13 +167,16 @@ def _print_summary(df: pd.DataFrame):
         "Balanced":        df.iloc[balanced.argmin()],
     }
 
-    print(f"  {'':18s} {'dc':>7} {'rhoc':>7} {'do':>7} {'dm':>7} {'z_scale':>8}  "
+    has_z = "z_scale" in df.columns
+    z_hdr = f" {'z_scale':>8} " if has_z else " "
+    print(f"  {'':18s} {'dc':>7} {'rhoc':>7} {'do':>7} {'dm':>7}{z_hdr} "
           f"{'purity':>8} {'eff':>8} {'ratio':>8}")
     print(f"  {'-'*85}")
     for name, row in labels.items():
+        z_val = f" {row['z_scale']:8.4f} " if has_z else " "
         print(f"  {name:18s} "
               f"{row['dc']:7.4f} {row['rhoc']:7.4f} {row['do']:7.4f} "
-              f"{row['dm']:7.4f} {row['z_scale']:8.4f}  "
+              f"{row['dm']:7.4f}{z_val} "
               f"{row['max_purity_score']:8.4f} {row['min_efficiency']:8.4f} "
               f"{row['penalized_ratio']:8.4f}")
     print()
