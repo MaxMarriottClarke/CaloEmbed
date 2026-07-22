@@ -11,6 +11,7 @@ Model and loss are chosen by name in the config (see src/models, src/losses).
 import argparse
 import csv
 import json
+import math
 import time
 from pathlib import Path
 
@@ -22,10 +23,31 @@ from src.data import HDF5Events, discover_files, split_files
 from src.loop import run_epoch
 from src.losses import build_loss
 from src.models import build_model
+from src.sampler import BucketedBatchSampler
 from src.utils import count_parameters, git_hash, set_seed
 
+# Schedulers stepped once per optimizer step rather than once per epoch.
+PER_ITERATION_SCHEDULERS = {"warmup_cosine"}
 
-def build_scheduler(optimizer, cfg: dict, epochs: int):
+PRECISIONS = {"fp16": torch.float16, "bf16": torch.bfloat16}
+
+
+def build_optimizer(model, cfg: dict):
+    name = cfg.get("optimizer", "adam").lower()
+    lr, weight_decay = cfg["lr"], cfg.get("weight_decay", 0.0)
+    if name == "adam":
+        return torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+    if name == "adamw":
+        # Decay matrices only — biases and norm gains are excluded, as in the
+        # modern-transformer recipe this optimizer is here for.
+        params = [p for p in model.parameters() if p.requires_grad]
+        groups = [{"params": [p for p in params if p.ndim > 1], "weight_decay": weight_decay},
+                  {"params": [p for p in params if p.ndim <= 1], "weight_decay": 0.0}]
+        return torch.optim.AdamW(groups, lr=lr, betas=tuple(cfg.get("betas", (0.9, 0.999))))
+    raise ValueError(f"Unknown optimizer '{name}' (adam | adamw)")
+
+
+def build_scheduler(optimizer, cfg: dict, epochs: int, steps_per_epoch: int = 1):
     name = cfg.get("scheduler", "none")
     if name == "none":
         return None
@@ -34,7 +56,18 @@ def build_scheduler(optimizer, cfg: dict, epochs: int):
             optimizer, step_size=cfg.get("step_size", 25), gamma=cfg.get("gamma", 0.5))
     if name == "cosine":
         return torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
-    raise ValueError(f"Unknown scheduler '{name}' (none | step | cosine)")
+    if name == "warmup_cosine":
+        total = max(1, epochs * steps_per_epoch)
+        warmup = max(1, int(cfg.get("warmup_fraction", 0.05) * total))
+
+        def lr_scale(step: int) -> float:
+            if step < warmup:
+                return (step + 1) / warmup
+            progress = (step - warmup) / max(1, total - warmup)
+            return 0.5 * (1.0 + math.cos(math.pi * min(1.0, progress)))
+
+        return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_scale)
+    raise ValueError(f"Unknown scheduler '{name}' (none | step | cosine | warmup_cosine)")
 
 
 def main(argv=None):
@@ -88,13 +121,27 @@ def main(argv=None):
           f"({len(train_files)}/{len(val_files)}/{len(test_files)} train/val/test files, "
           f"test never loaded), features={features}")
 
+    batch_size = data_cfg.get("batch_size", 32)
     loader_kwargs = dict(
-        batch_size=data_cfg.get("batch_size", 32),
         num_workers=data_cfg.get("num_workers", 2),
         pin_memory=device.type == "cuda",
     )
-    train_loader = DataLoader(data_train, shuffle=True, drop_last=True, **loader_kwargs)
-    val_loader = DataLoader(data_val, shuffle=False, **loader_kwargs)
+    if data_cfg.get("bucket_by_size", False):
+        # Dense-attention models pay B * S^2 per batch, so batch events of
+        # similar size together (see src.sampler for why pool-local, not global).
+        pool_batches = data_cfg.get("bucket_pool_batches", 50)
+        train_loader = DataLoader(data_train, batch_sampler=BucketedBatchSampler(
+            data_train.event_sizes, batch_size, pool_batches, shuffle=True,
+            drop_last=True, seed=seed), **loader_kwargs)
+        val_loader = DataLoader(data_val, batch_sampler=BucketedBatchSampler(
+            data_val.event_sizes, batch_size, pool_batches, shuffle=False,
+            drop_last=False, seed=seed), **loader_kwargs)
+        print(f"Batching: size-bucketed (pool = {pool_batches} batches)")
+    else:
+        train_loader = DataLoader(data_train, batch_size=batch_size, shuffle=True,
+                                  drop_last=True, **loader_kwargs)
+        val_loader = DataLoader(data_val, batch_size=batch_size, shuffle=False,
+                                **loader_kwargs)
 
     # ── model / loss / optim ─────────────────────────────────────────────
     model = build_model({**cfg["model"], "in_dim": len(features)}).to(device)
@@ -104,13 +151,21 @@ def main(argv=None):
 
     optim_cfg = cfg["optim"]
     epochs = cfg["train"]["epochs"]
-    optimizer = torch.optim.Adam(
-        model.parameters(), lr=optim_cfg["lr"],
-        weight_decay=optim_cfg.get("weight_decay", 0.0))
-    scheduler = build_scheduler(optimizer, optim_cfg, epochs)
+    accum_steps = cfg["train"].get("accum_steps", 1)
+    optimizer = build_optimizer(model, optim_cfg)
+    per_iteration_sched = optim_cfg.get("scheduler", "none") in PER_ITERATION_SCHEDULERS
+    scheduler = build_scheduler(optimizer, optim_cfg, epochs,
+                                steps_per_epoch=max(1, len(train_loader) // accum_steps))
     amp = cfg["train"].get("amp", True)
+    precision = cfg["train"].get("precision", "fp16")
+    if precision not in PRECISIONS:
+        raise ValueError(f"Unknown precision '{precision}' ({' | '.join(PRECISIONS)})")
+    amp_dtype = PRECISIONS[precision]
     grad_clip = cfg["train"].get("grad_clip")
-    scaler = torch.amp.GradScaler(device.type, enabled=amp and device.type == "cuda")
+    # bf16 has fp32's exponent range, so no loss scaling is needed (and must not
+    # be applied); a disabled GradScaler is a pass-through on every call.
+    scaler = torch.amp.GradScaler(
+        device.type, enabled=amp and device.type == "cuda" and precision == "fp16")
 
     start_epoch, best_val = 0, float("inf")
     if args.resume:
@@ -133,13 +188,16 @@ def main(argv=None):
     # ── loop ─────────────────────────────────────────────────────────────
     for epoch in range(start_epoch, epochs):
         t0 = time.perf_counter()
+        lr = optimizer.param_groups[0]["lr"]
         train_loss = run_epoch(model, train_loader, loss_fn, device,
                                optimizer=optimizer, scaler=scaler, amp=amp,
-                               grad_clip=grad_clip, desc=f"epoch {epoch + 1} train")
+                               amp_dtype=amp_dtype, grad_clip=grad_clip,
+                               accum_steps=accum_steps,
+                               scheduler=scheduler if per_iteration_sched else None,
+                               desc=f"epoch {epoch + 1} train")
         val_loss = run_epoch(model, val_loader, loss_fn, device, amp=amp,
-                             desc=f"epoch {epoch + 1} val")
-        lr = optimizer.param_groups[0]["lr"]
-        if scheduler:
+                             amp_dtype=amp_dtype, desc=f"epoch {epoch + 1} val")
+        if scheduler and not per_iteration_sched:
             scheduler.step()
         seconds = time.perf_counter() - t0
 

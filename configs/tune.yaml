@@ -1,4 +1,4 @@
-# CLUE3D parameter tuning with MOPSO multi-objective optimisation.
+# CLUEstering parameter tuning with MOPSO multi-objective optimisation.
 #
 # Usage:
 #   caloembed-tune --config configs/tune.yaml

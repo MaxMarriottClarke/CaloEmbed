@@ -30,3 +30,4 @@ def build_model(cfg: dict):
 
 
 from . import edgeconv  # noqa: E402,F401  (registers "edgeconv")
+from . import geo_transformer  # noqa: E402,F401  (registers "geo_transformer")

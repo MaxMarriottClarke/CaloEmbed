@@ -1,0 +1,38 @@
+{
+  "timestamp": "2026-07-22T07:26:53",
+  "config_file": "configs/tune_clue_gnn.yaml",
+  "run_dir": "results/training/edgeconv_infonce",
+  "data_dir": "/vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5",
+  "n_events": 3000,
+  "backend": "gpu cuda",
+  "metric": "euclidean",
+  "n_particles": 40,
+  "n_iterations": 40,
+  "seed": 42,
+  "param_names": [
+    "dc",
+    "rhoc",
+    "do",
+    "dm"
+  ],
+  "lower_bounds": [
+    0.001,
+    0.01,
+    0.001,
+    0.001
+  ],
+  "upper_bounds": [
+    2.0,
+    20.0,
+    2.0,
+    2.0
+  ],
+  "default_point": [
+    0.2,
+    1.0,
+    0.4,
+    0.3
+  ],
+  "min_lc": 3,
+  "penalty": 1000.0
+}

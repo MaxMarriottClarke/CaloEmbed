@@ -52,6 +52,23 @@ def test_load_normalization_and_boundaries(tmp_path):
         np.testing.assert_allclose(d.x[:, 4], raw["eta"][s:e], rtol=1e-6)
         np.testing.assert_array_equal(d.y, raw["argmax_cp_idx"][s:e])
         np.testing.assert_allclose(d.frac, raw["argmax_fraction"][s:e], rtol=1e-6)
+        # raw energy is carried alongside the log1p-normalized feature column
+        np.testing.assert_allclose(d.energy, raw["energy"][s:e], rtol=1e-6)
+
+
+def test_derived_phi_features(tmp_path):
+    """sin_phi/cos_phi are derived from the lc/phi column, not a column of
+    their own, and leave the default feature set untouched."""
+    raw, offsets = make_h5(tmp_path / "a.h5", event_sizes=[6, 4])
+    features = ("x", "y", "z", "energy", "eta", "sin_phi", "cos_phi")
+    ds = HDF5Events([tmp_path / "a.h5"], features=features)
+    assert ds.num_features == 7
+    for ev in range(2):
+        s, e = offsets[ev], offsets[ev + 1]
+        d = ds.get(ev)
+        np.testing.assert_allclose(d.x[:, 5], np.sin(raw["phi"][s:e]), rtol=1e-5, atol=1e-6)
+        np.testing.assert_allclose(d.x[:, 6], np.cos(raw["phi"][s:e]), rtol=1e-5, atol=1e-6)
+        np.testing.assert_allclose(d.x[:, 5] ** 2 + d.x[:, 6] ** 2, 1.0, atol=1e-5)
 
 
 def test_multi_file_concatenation(tmp_path):
@@ -117,6 +134,29 @@ def test_end_to_end_batch_model_loss(tmp_path):
         loss.backward()
         n_batches += 1
     assert n_batches == 2
+    grads = [p.grad for p in model.parameters() if p.grad is not None]
+    assert grads and all(torch.isfinite(g).all() for g in grads)
+
+
+def test_end_to_end_transformer_margin(tmp_path):
+    """Same chain for the geometric transformer + margin loss: batching (which
+    pads to a dense tensor), forward, loss, backward."""
+    make_h5(tmp_path / "a.h5", [30, 45, 25, 40], seed=3)
+    features = ("x", "y", "z", "energy", "eta", "sin_phi", "cos_phi")
+    ds = HDF5Events([tmp_path / "a.h5"], features=features)
+    loader = DataLoader(ds, batch_size=2, shuffle=False)
+    model = build_model({"name": "geo_transformer", "in_dim": ds.num_features,
+                         "hidden_dim": 32, "num_layers": 2, "n_heads": 4,
+                         "out_dim": 3, "geom_idx": [0, 1, 2, 4, 5, 6],
+                         "bias_hidden": 8, "bias_chunk": 16})
+    loss_fn = build_loss({"name": "discriminative"})
+
+    for data in loader:
+        emb = model(data)
+        assert emb.shape == (data.num_nodes, 3)
+        loss = loss_fn(emb, data)
+        assert loss.ndim == 0 and torch.isfinite(loss)
+        loss.backward()
     grads = [p.grad for p in model.parameters() if p.grad is not None]
     assert grads and all(torch.isfinite(g).all() for g in grads)
 

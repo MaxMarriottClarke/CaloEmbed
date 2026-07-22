@@ -1,0 +1,38 @@
+000 (4585881.000.000) 2026-07-22 07:19:47 Job submitted from host: <146.179.108.134:9618?addrs=146.179.108.134-9618&alias=htcmaster00.hep.ph.ic.ac.uk&noUDP&sock=schedd_951_e2a7>
+...
+001 (4585881.000.000) 2026-07-22 07:19:47 Job executing on host: <146.179.108.88:9618?addrs=146.179.108.88-9618+[2a0c-5bc0-88-111-216-3eff-fe7f-1b5]-9618&alias=lxbgpu02.hep.ph.ic.ac.uk&noUDP&sock=startd_1787_4fd4>
+	SlotName: slot1_1@lxbgpu02.hep.ph.ic.ac.uk
+	AvailableGPUs = { GPUs_GPU_7bbb24a2 }
+	CondorScratchDir = "/srv/localstage/condor/dir_226996"
+	Cpus = 16
+	Disk = 735125138
+	GPUs = 1
+	GPUs_GPU_7bbb24a2 = [ Id = "GPU-7bbb24a2"; ClockMhz = 1328.5; Capability = 6.0; CoresPerCU = 64; DeviceName = "Tesla P100-PCIE-12GB"; DeviceUuid = "7bbb24a2-bb63-b859-ef98-fac5f455eb4f"; ECCEnabled = true; ComputeUnits = 56; NvidiaDriver = "580.173.02"; DriverVersion = 13.0; DevicePciBusId = "0000:00:03.0"; GlobalMemoryMb = 12187; MaxSupportedVersion = 13000 ]
+	Memory = 85790
+...
+006 (4585881.000.000) 2026-07-22 07:19:56 Image size of job updated: 39600
+	39  -  MemoryUsage of job (MB)
+	39600  -  ResidentSetSize of job (KB)
+...
+006 (4585881.000.000) 2026-07-22 07:20:37 Image size of job updated: 455152
+	39  -  MemoryUsage of job (MB)
+	39608  -  ResidentSetSize of job (KB)
+...
+005 (4585881.000.000) 2026-07-22 07:20:37 Job terminated.
+	(1) Normal termination (return value 1)
+		Usr 0 00:00:15, Sys 0 00:00:05  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:00:15, Sys 0 00:00:05  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	0  -  Run Bytes Sent By Job
+	0  -  Run Bytes Received By Job
+	0  -  Total Bytes Sent By Job
+	0  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage      Request Allocated Assigned
+	   Cpus                 :        0        16           16 
+	   Disk (KB)            :        4 661612624.20 735125138 
+	   GPUs                 :                  1            1 "GPU-7bbb24a2"
+	   Memory (MB)          :       39     85790        85790 
+	   TimeExecute (s)      :       50                        
+	   TimeSlotBusy (s)     :       50                        
+...

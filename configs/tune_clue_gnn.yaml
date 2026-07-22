@@ -1,0 +1,67 @@
+# Tune CLUEstering parameters with MOPSO on a trained GNN's 3D embeddings.
+#
+# Each event is embedded into 3-D by the trained GNN; CLUE then clusters those
+# embeddings (euclidean metric) with energy as the weight, exactly as in the raw
+# pipeline. Only the CLUE thresholds are searched — there is no z_scale, because
+# the embedding dimensions are abstract and symmetric (L2-normalized to a unit
+# sphere), so no axis is privileged.
+#
+# Usage:
+#   caloembed-tune-clue-gnn --config configs/tune_clue_gnn.yaml
+#   caloembed-tune-clue-gnn --config configs/tune_clue_gnn.yaml --output results/run2
+#   caloembed-tune-clue-gnn --config configs/tune_clue_gnn.yaml --resume   # from checkpoint
+
+model:
+  run_dir: results/training/edgeconv_infonce   # config.yaml + best.pt
+
+data:
+  # Files are read straight from this directory — independent of the training
+  # splits. This is a cross-dataset test: the model was trained on d7.
+  dir: /vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5
+  n_events: 3000
+
+output:
+  dir: results/param_tuning/gnn_clue_d5
+
+clustering:
+  backend: auto       # auto → gpu cuda > cpu openmp > cpu serial
+  ppbin: 128
+  block_size: 1024
+  device_id: 0
+
+metrics:
+  min_lc: 3
+
+# Parameters to tune. Bounds are on the embedding scale: the GNN output is
+# L2-normalized, so points lie on a unit sphere and pairwise distances span
+# ~[0, 2] — much smaller than the raw (x,y,z) pipeline. Adjust after a first run.
+parameters:
+  dc:
+    lower:   0.001
+    upper:   2.0
+    default: 0.2
+  rhoc:
+    lower:   0.01
+    upper:   20.0
+    default: 1.0
+  do:
+    lower:   0.001
+    upper:   2.0
+    default: 0.4
+  dm:
+    lower:   0.001
+    upper:   2.0
+    default: 0.3
+
+mopso:
+  n_particles:          40
+  n_iterations:         40
+  seed:                 42
+  inertia_weight:       0.5
+  cognitive_coefficient: 1.5
+  social_coefficient:   2.0
+  topology: lower_weighted_crowding_distance
+  initial_position: random
+
+objectives:
+  under_cluster_penalty: 1000.0

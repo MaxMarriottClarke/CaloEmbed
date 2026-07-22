@@ -1,0 +1,59 @@
+# HTCondor submit file for geometric-transformer embedding training.
+#
+# Submit from the repo root:
+#   condor_submit training/condor/train_transformer.sub
+#
+# Override config (path relative to training/, where the run script executes):
+#   condor_submit training/condor/train_transformer.sub config=configs/geo_transformer.yaml
+#
+# Resume a previous run:
+#   condor_submit training/condor/train_transformer.sub extra_args=--resume
+#
+# To land on the best currently-available GPU node, submit via
+#   SUB_FILE=training/condor/train_transformer.sub training/condor/submit_best_gpu.sh
+# instead of calling condor_submit directly — see that script for why (this
+# pool's negotiator policy always prefers the smallest whole-node GPU box, so a
+# plain `rank` expression here can't reliably pick the best free GPU on its own).
+
+# NOTE on overrides: every tunable below uses $(name:default) and is NEVER
+# assigned as a plain macro in this file. That is deliberate — condor_submit
+# inserts command-line assignments *before* parsing the file, so a same-named
+# in-file assignment silently wins and the override is dropped without warning.
+# Verified with: condor_submit -dry-run /dev/stdout ... config=X  (X ignored
+# when `config = ...` appears in the file).
+
+universe        = vanilla
+executable      = training/run_train_transformer.sh
+arguments       = --config $(config:configs/geo_transformer.yaml) $(extra_args)
+initialdir      = /vols/cms/mm1221/cms/CaloEmbed
+
+log             = logs/condor/train_transformer_$(ClusterId).log
+output          = logs/condor/train_transformer_$(ClusterId).$(ProcId).out
+error           = logs/condor/train_transformer_$(ClusterId).$(ProcId).err
+
+request_GPUs    = 1
+# The dataset is loaded fully into host RAM (~44 bytes/layer-cluster, and the
+# concatenate at load time roughly doubles that transiently), so raise this via train_mem= with
+# data.max_files: ~48GB for 2000 files, ~96GB for 5000.
+request_memory  = $(train_mem:16GB)
+
+# min_gpu_capability: bf16 needs Ampere (8.0+) — in this pool the A6000 nodes,
+# which are also the only ones with enough GPU memory to be comfortable at these
+# event sizes (P100 12GB / V100 32GB / A6000 45GB). Relax it only alongside
+# train.precision: fp16 in the config, e.g.
+#   condor_submit ... min_gpu_capability=7.0 config=configs/my_fp16.yaml
+
+# target_gpu_host: quoted hostname to pin the job to, e.g.
+# target_gpu_host="\"lxdgpu00.hep.ph.ic.ac.uk\"" (set by submit_best_gpu.sh).
+# Left undefined, $(target_gpu_host:Machine) falls back to the tautology
+# "Machine == Machine" so the clause is a no-op and matches any GPU node.
+# NOTE: must NOT be assigned as a plain macro anywhere in this file — a
+# same-named in-file assignment silently overrides command-line overrides.
+requirements    = (TARGET.Arch == "X86_64") && (TARGET.OpSys == "LINUX") && (TARGET.Disk >= RequestDisk) && (TARGET.Memory >= RequestMemory) && (TARGET.GPUs >= RequestGPUs) && (TARGET.GPUs_Capability >= $(min_gpu_capability:8.0)) && ((TARGET.FileSystemDomain == MY.FileSystemDomain) || (TARGET.HasFileTransfer)) && (Machine == $(target_gpu_host:Machine))
+
+# Best-effort preference only — see note above on why this alone won't
+# reliably pick the best free GPU on this pool.
+rank            = (GPUs_Capability * 100000) + GPUs_GlobalMemoryMb
++MaxRuntime     = 300000
+
+queue

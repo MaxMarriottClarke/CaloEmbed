@@ -21,3 +21,12 @@ epoch 14/50  train 6.346253  val 6.327202  lr 2.53e-04  (9611s)  *best*
 epoch 15/50  train 6.345696  val 6.327284  lr 2.46e-04  (9621s)
 epoch 16/50  train 6.345176  val 6.326268  lr 2.38e-04  (9618s)  *best*
 epoch 17/50  train 6.344711  val 6.329301  lr 2.30e-04  (9655s)
+epoch 18/50  train 6.344256  val 6.326190  lr 2.22e-04  (9672s)  *best*
+epoch 19/50  train 6.343785  val 6.327952  lr 2.14e-04  (9671s)
+epoch 20/50  train 6.343377  val 6.325339  lr 2.05e-04  (9682s)  *best*
+epoch 21/50  train 6.342966  val 6.327743  lr 1.96e-04  (9691s)
+epoch 22/50  train 6.342585  val 6.325827  lr 1.87e-04  (9691s)
+epoch 23/50  train 6.342182  val 6.325188  lr 1.78e-04  (9708s)  *best*
+epoch 24/50  train 6.341788  val 6.326540  lr 1.69e-04  (9713s)
+epoch 25/50  train 6.341437  val 6.329970  lr 1.59e-04  (9719s)
+epoch 26/50  train 6.341112  val 6.324932  lr 1.50e-04  (9736s)  *best*

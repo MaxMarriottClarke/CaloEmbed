@@ -170,3 +170,28 @@
 	72659  -  MemoryUsage of job (MB)
 	74402568  -  ResidentSetSize of job (KB)
 ...
+022 (4523196.000.000) 2026-07-15 11:38:01 Job disconnected, attempting to reconnect
+    Local schedd and job shadow died, schedd now running again
+    Trying to reconnect to slot1_1@lxdgpu01.hep.ph.ic.ac.uk <146.179.108.47:9618?addrs=146.179.108.47-9618+[2a0c-5bc0-88-111-632-1ff-fee0-a7a8]-9618&alias=lxdgpu01.hep.ph.ic.ac.uk&noUDP&sock=startd_2419_cfaf>
+...
+023 (4523196.000.000) 2026-07-15 11:38:02 Job reconnected to slot1_1@lxdgpu01.hep.ph.ic.ac.uk
+    startd address: <146.179.108.47:9618?addrs=146.179.108.47-9618+[2a0c-5bc0-88-111-632-1ff-fee0-a7a8]-9618&alias=lxdgpu01.hep.ph.ic.ac.uk&noUDP&sock=startd_2419_cfaf>
+    starter address: <146.179.108.47:9618?addrs=146.179.108.47-9618+[2a0c-5bc0-88-111-632-1ff-fee0-a7a8]-9618&alias=lxdgpu01.hep.ph.ic.ac.uk&noUDP&sock=slot1_1_3037_9755_1462>
+...
+004 (4523196.000.000) 2026-07-16 08:06:34 Job was evicted. Code 1009 Subcode 0
+	(0) CPU times
+		Usr 2 22:30:57, Sys 0 01:15:45  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	0  -  Run Bytes Received By Job
+	Reason: Claim deactivated
+	Partitionable Resources :     Usage  Request  Allocated 
+	   Cpus                 :      1.03                  32 
+	   Disk (KB)            :      2             1507458923 
+	   Memory (MB)          :  73243                 128075 
+	   TimeExecute (s)      : 252487                        
+	   TimeSlotBusy (s)     : 252487                        
+...
+009 (4523196.000.000) 2026-07-16 08:06:34 Job was aborted.
+	via condor_rm (by user mm1221)
+...

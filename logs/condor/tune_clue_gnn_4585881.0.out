@@ -1,0 +1,7 @@
+Host : lxbgpu02.hep.ph.ic.ac.uk
+Date : Wed Jul 22 07:19:53 BST 2026
+Args : --config configs/tune_clue_gnn.yaml
+GPU  : Tesla P100-PCIE-12GB
+CLUE backend verified working.
+torch CUDA : yes
+

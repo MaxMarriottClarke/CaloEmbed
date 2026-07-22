@@ -1,0 +1,34 @@
+# HTCondor submit file for MOPSO tuning of CLUE on GNN embeddings.
+#
+# Submit from the repo root:
+#   condor_submit condor/tune_clue_gnn.sub
+#
+# Override config:
+#   condor_submit condor/tune_clue_gnn.sub config=configs/tune_clue_gnn.yaml
+#
+# Resume a previous run:
+#   condor_submit condor/tune_clue_gnn.sub extra_args=--resume
+#
+# Different output directory:
+#   condor_submit condor/tune_clue_gnn.sub extra_args="--output results/gnn_clue_v2"
+
+universe        = vanilla
+executable      = run_tune_clue_gnn.sh
+arguments       = --config $(config) $(extra_args)
+initialdir      = /vols/cms/mm1221/cms/CaloEmbed
+
+config          = configs/tune_clue_gnn.yaml
+extra_args      =
+
+log             = logs/condor/tune_clue_gnn_$(ClusterId).log
+output          = logs/condor/tune_clue_gnn_$(ClusterId).$(ProcId).out
+error           = logs/condor/tune_clue_gnn_$(ClusterId).$(ProcId).err
+
+# 16GB (vs 8GB for the raw tune.sub): this job additionally holds the torch
+# runtime, the GNN weights, and the cached per-event embeddings in memory.
+request_CPUs    = 1
+request_GPUs    = 1
+request_memory  = 16GB
++MaxRuntime     = 300000
+
+queue

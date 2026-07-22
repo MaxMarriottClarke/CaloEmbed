@@ -1,0 +1,10 @@
+Host : lxcgpu00.hep.ph.ic.ac.uk
+Date : Wed Jul 22 09:34:21 BST 2026
+Args : --config configs/geo_transformer_v100_200k.yaml
+GPU  : Tesla V100-PCIE-32GB, 32768 MiB
+torch: 2.5.0 | CUDA cap 7.0 | precision: fp16
+Data: 180100 train / 19900 val events (1801/199/0 train/val/test files, test never loaded), features=['x', 'y', 'z', 'energy', 'eta', 'sin_phi', 'cos_phi']
+Batching: size-bucketed (pool = 50 batches)
+Model: geo_transformer (993,707 params) | loss: discriminative | device: cuda
+epoch 1/50  train 1.181122  val 0.329742  lr 2.13e-08  (5065s)  *best*
+epoch 2/50  train 0.289013  val 0.228675  lr 1.20e-04  (4258s)  *best*

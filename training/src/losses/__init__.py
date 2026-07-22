@@ -30,3 +30,4 @@ def build_loss(cfg: dict):
 
 
 from . import infonce  # noqa: E402,F401  (registers "infonce")
+from . import margin  # noqa: E402,F401  (registers "discriminative")

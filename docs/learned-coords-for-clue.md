@@ -218,9 +218,6 @@ weight channel).
 **Curriculum** (overlap = min inter-CP centroid distance in raw space; hardness
 also from `p_i ≈ 0.5` density):
 
-1. Stage 1 — isolated / low multiplicity (`n_cp` 2–3, no overlap).
-2. Stage 2 — add overlap and `n_cp` up to 7, EM + hadronic mixed.
-
 Epochs ~100 (tune to convergence of the CLUE-metric selection below).
 
 **Checkpoint selection — on the REAL objective, not the surrogate loss.**
