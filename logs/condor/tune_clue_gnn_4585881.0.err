@@ -1,9 +1,0 @@
-Traceback (most recent call last):
-  File "<frozen runpy>", line 198, in _run_module_as_main
-  File "<frozen runpy>", line 88, in _run_code
-  File "/vols/cms/mm1221/cms/CaloEmbed/caloembed/scripts/tune_clue_gnn.py", line 350, in <module>
-    main()
-  File "/vols/cms/mm1221/cms/CaloEmbed/caloembed/scripts/tune_clue_gnn.py", line 184, in main
-    patatune.Randomizer.rng = np.random.default_rng(mopso_cfg["seed"])
-    ^^^^^^^^^^^^^^^^^^^
-AttributeError: module 'patatune' has no attribute 'Randomizer'

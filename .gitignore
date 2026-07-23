@@ -17,6 +17,12 @@ build/
 *.npy
 *.npz
 *.parquet
+*.pt
+
+# Condor / job logs
+*.log
+*.err
+*.out
 
 # Results (keep structure, not outputs)
 #results/**
