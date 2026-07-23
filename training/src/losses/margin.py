@@ -1,4 +1,4 @@
-"""Energy- and purity-weighted discriminative embedding loss, per event.
+"""Energy and purity-weighted discriminative embedding loss, per event.
 
 See docs/learned-coords-for-clue.md §4-§6. With node weights w_i and truth
 objects c = 1..C:

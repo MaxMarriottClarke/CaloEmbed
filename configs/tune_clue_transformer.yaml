@@ -1,0 +1,72 @@
+# Tune CLUEstering parameters with MOPSO on a trained geo_transformer's embeddings.
+#
+# Each event is embedded into R^out_dim by the trained geo_transformer; CLUE
+# then clusters those embeddings (euclidean metric) with energy as the weight.
+# Only the CLUE thresholds are searched — there is no z_scale, because the
+# transformer's discriminative loss already sets the absolute distance scale
+# (see model.run_dir/config.yaml: delta_v/delta_d) and no axis is privileged.
+#
+# This is a small smoke-test run (40 particles x 30 iterations x 2k events) to
+# gauge transformer-embedding clustering performance, not a full production tune.
+#
+# Usage:
+#   caloembed-tune-clue-transformer --config configs/tune_clue_transformer.yaml
+#   caloembed-tune-clue-transformer --config configs/tune_clue_transformer.yaml --output results/run2
+#   caloembed-tune-clue-transformer --config configs/tune_clue_transformer.yaml --resume   # from checkpoint
+
+model:
+  run_dir: results/training/geo_transformer_v100_200k   # config.yaml + best.pt
+
+data:
+  # Cross-dataset test, same convention as tune_clue_gnn.yaml: the model was
+  # trained on d7, evaluated here on d5.
+  dir: /vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5
+  n_events: 2000
+
+output:
+  dir: results/param_tuning/transformer_clue_d5_smoke
+
+clustering:
+  backend: auto       # auto → gpu cuda > cpu openmp > cpu serial
+  ppbin: 128
+  block_size: 1024
+  device_id: 0
+
+metrics:
+  min_lc: 3
+
+# Parameters to tune. Bounds are on the embedding scale: the geo_transformer
+# output is raw (unnormalized) Euclidean R^3, with the discriminative loss
+# targeting delta_v=0.5 (intra-cluster) and delta_d=1.5 (inter-cluster) — see
+# model.run_dir/config.yaml. Measured on real d5 events, pairwise embedding
+# distances span roughly [0, 5] (p5 ~0.2-0.4, median ~2, max ~4-5).
+parameters:
+  dc:
+    lower:   0.001
+    upper:   2.0
+    default: 0.3
+  rhoc:
+    lower:   0.01
+    upper:   20.0
+    default: 1.0
+  do:
+    lower:   0.001
+    upper:   5.0
+    default: 1.0
+  dm:
+    lower:   0.001
+    upper:   5.0
+    default: 0.8
+
+mopso:
+  n_particles:          40
+  n_iterations:         30
+  seed:                 42
+  inertia_weight:       0.5
+  cognitive_coefficient: 1.5
+  social_coefficient:   2.0
+  topology: lower_weighted_crowding_distance
+  initial_position: random
+
+objectives:
+  under_cluster_penalty: 1000.0

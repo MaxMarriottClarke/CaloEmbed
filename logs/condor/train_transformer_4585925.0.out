@@ -25,3 +25,4 @@ epoch 16/50  train 0.179510  val 0.171105  lr 2.52e-04  (4268s)
 epoch 17/50  train 0.178534  val 0.168630  lr 2.44e-04  (4268s)  *best*
 epoch 18/50  train 0.177327  val 0.168862  lr 2.36e-04  (4267s)
 epoch 19/50  train 0.176106  val 0.167166  lr 2.28e-04  (4272s)  *best*
+epoch 20/50  train 0.175926  val 0.167753  lr 2.19e-04  (4272s)
