@@ -6,3 +6,8 @@ torch: 2.5.0 | CUDA cap 8.6 | precision: bf16
 Data: 449900 train / 50100 val events (4499/501/0 train/val/test files, test never loaded), features=['x', 'y', 'z', 'energy', 'eta', 'sin_phi', 'cos_phi']
 Batching: size-bucketed (pool = 50 batches)
 Model: geo_transformer (993,707 params) | loss: discriminative | device: cuda
+epoch 1/30  train 0.726625  val 0.222763  lr 1.42e-08  (10584s)  *best*
+epoch 2/30  train 0.218799  val 0.186441  lr 2.00e-04  (9550s)  *best*
+epoch 3/30  train 0.196332  val 0.180707  lr 3.00e-04  (9571s)  *best*
+epoch 4/30  train 0.189016  val 0.174048  lr 2.98e-04  (9584s)  *best*
+epoch 5/30  train 0.185859  val 0.173565  lr 2.94e-04  (9574s)  *best*

@@ -1,35 +1,29 @@
 #!/usr/bin/env bash
-# Run geometric-transformer embedding training (learned CLUE coordinates) —
-# works interactively and as a condor job. All arguments are forwarded.
-#
+# Run geometric-transformer embedding training 
+# works interactively and as a condor job. 
 # Usage:
 #   ./run_train_transformer.sh                                  # configs/geo_transformer.yaml
 #   ./run_train_transformer.sh --epochs 100 --batch-size 8
 #   ./run_train_transformer.sh --resume
-#
-# Same shape as run_train.sh (which stays the GNN entry point); this one just
-# defaults to the transformer config and fails fast without a GPU, because the
-# O(n_lc^2) attention is not usable on CPU.
 
 set -eo pipefail
 
 TRAIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# ── environment ──────────────────────────────────────────────────────────────
+# environment 
 export MAMBA_ROOT_PREFIX="${HOME}/micromamba"
 eval "$("${HOME}/bin/micromamba" shell hook --shell bash 2>/dev/null)"
 micromamba activate caloembed
 
+#Needed for lx04
 source /vols/software/cuda/setup.sh 2>/dev/null || true
 
-# ── info ─────────────────────────────────────────────────────────────────────
+# info 
 cd "${TRAIN_DIR}"
 echo "Host : $(hostname)"
 echo "Date : $(date)"
-echo "Args : ${*:-'(none — using defaults)'}"
+echo "Args : ${*:-'(none: using defaults)'}"
 
-# A GPU was requested (request_GPUs=1 in condor/train_transformer.sub) — fail
-# fast if this node can't provide one rather than grinding for days on CPU.
 set +e
 GPU_QUERY="$(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>&1)"
 GPU_QUERY_STATUS=$?
@@ -68,7 +62,7 @@ if '${PRECISION}' == 'bf16' and major < 8:
         'Set train.precision: fp16 in the config, or submit to an Ampere+ node.')
 "
 
-# ── run ──────────────────────────────────────────────────────────────────────
+# run
 ARGS=("$@")
 if [[ ! " ${ARGS[*]} " =~ " --config " ]]; then
     ARGS=(--config configs/geo_transformer.yaml "${ARGS[@]}")
