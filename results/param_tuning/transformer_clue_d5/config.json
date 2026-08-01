@@ -1,0 +1,38 @@
+{
+  "timestamp": "2026-07-26T08:32:14",
+  "config_file": "configs/tune_clue_transformer.yaml",
+  "run_dir": "results/training/geo_transformer_v100_200k",
+  "data_dir": "/vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5",
+  "n_events": 5000,
+  "backend": "gpu cuda",
+  "metric": "euclidean",
+  "n_particles": 40,
+  "n_iterations": 45,
+  "seed": 42,
+  "param_names": [
+    "dc",
+    "rhoc",
+    "do",
+    "dm"
+  ],
+  "lower_bounds": [
+    0.001,
+    0.01,
+    0.001,
+    0.001
+  ],
+  "upper_bounds": [
+    2.0,
+    20.0,
+    5.0,
+    5.0
+  ],
+  "default_point": [
+    0.3,
+    1.0,
+    1.0,
+    0.8
+  ],
+  "min_lc": 3,
+  "penalty": 1000.0
+}

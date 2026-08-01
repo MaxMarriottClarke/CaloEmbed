@@ -21,10 +21,10 @@ data:
   # Cross-dataset test, same convention as tune_clue_gnn.yaml: the model was
   # trained on d7, evaluated here on d5.
   dir: /vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5
-  n_events: 2000
+  n_events: 5000
 
 output:
-  dir: results/param_tuning/transformer_clue_d5_smoke
+  dir: results/param_tuning/transformer_clue_d5
 
 clustering:
   backend: auto       # auto → gpu cuda > cpu openmp > cpu serial
@@ -60,7 +60,7 @@ parameters:
 
 mopso:
   n_particles:          40
-  n_iterations:         30
+  n_iterations:         45
   seed:                 42
   inertia_weight:       0.5
   cognitive_coefficient: 1.5

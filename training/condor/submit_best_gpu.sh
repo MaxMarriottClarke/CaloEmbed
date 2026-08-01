@@ -27,8 +27,17 @@ SUB_FILE="${SUB_FILE:-training/condor/train.sub}"
 MIN_CAPABILITY="${MIN_CAPABILITY:-0}"
 [[ -f "${SUB_FILE}" ]] || { echo "No such submit file: ${SUB_FILE}" >&2; exit 1; }
 
+# Match on free resources, not TotalGpus: these are partitionable slots, and a
+# fully-occupied node still advertises an Unclaimed remnant slot with
+# Cpus/Memory/Gpus all 0. Selecting one of those pins the job to a host that
+# cannot match, so it sits idle forever instead of taking the next-best free
+# GPU. `Gpus` on the partitionable slot is the count still available; the
+# State clause drops the Dynamic (already-claimed) slots, which report 1.
+# DrainNode: a node being drained keeps advertising its free GPU but its START
+# expression requires !DrainNode, so it refuses every job — pinning to one is
+# another way to queue forever.
 BEST_HOST="$(condor_status \
-    -constraint "TotalGpus > 0 && State == \"Unclaimed\" && GPUs_Capability >= ${MIN_CAPABILITY}" \
+    -constraint "Gpus > 0 && Cpus > 0 && State == \"Unclaimed\" && DrainNode =!= true && GPUs_Capability >= ${MIN_CAPABILITY}" \
     -af Machine GPUs_Capability GPUs_GlobalMemoryMb \
     | sort -k2,2 -k3,3 -nr \
     | head -n1 \
