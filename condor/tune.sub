@@ -1,24 +1,40 @@
-# HTCondor submit file for CLUE3D parameter tuning.
+# HTCondor submit file for raw-CLUE MOPSO parameter tuning.
 #
 # Submit from the repo root:
-#   condor_submit condor/tune.sub
+#   condor_submit condor/tune.sub                       # 1 job, seed 42
+#   condor_submit condor/tune.sub seeds="42 43 44"      # 3 independent swarms
 #
 # Override config:
 #   condor_submit condor/tune.sub config=configs/tune.yaml
 #
-# Resume a previous run:
-#   condor_submit condor/tune.sub extra_args=--resume
+# Resume a previous run (single seed only — pass the matching output dir):
+#   condor_submit condor/tune.sub extra_args="--resume --output results/param_tuning/raw_d5_strat_s42"
 #
-# Different output directory:
-#   condor_submit condor/tune.sub extra_args="--output results/tune_v2"
+# Each seed gets its own output directory, results/param_tuning/<base>_s<seed>.
+# Only the SWARM seed varies: configs/tune_raw_d5_strat.yaml pins
+# data.select_seed, so all seeds tune on the same 4600 events and the spread
+# between their fronts measures MOPSO stochasticity alone.
 
 universe        = vanilla
 executable      = run_tune.sh
-arguments       = --config $(config) $(extra_args)
+arguments       = --config $(config) --seed $(seed) --output $(outdir)_s$(seed) $(extra_args)
 initialdir      = /vols/cms/mm1221/cms/CaloEmbed
 
-config          = configs/tune.yaml
-extra_args      =
+# Defaults only — plain assignments would silently win over a command-line
+# `config=...` (condor_submit applies those first, then the submit file
+# overwrites them), so the documented overrides above would be ignored.
+if ! defined config
+  config        = configs/tune_raw_d5_strat.yaml
+endif
+if ! defined outdir
+  outdir        = results/param_tuning/raw_d5_strat
+endif
+if ! defined seeds
+  seeds         = 42
+endif
+if ! defined extra_args
+  extra_args    =
+endif
 
 log             = logs/condor/tune_$(ClusterId).log
 output          = logs/condor/tune_$(ClusterId).$(ProcId).out
@@ -27,6 +43,20 @@ error           = logs/condor/tune_$(ClusterId).$(ProcId).err
 request_CPUs    = 1
 request_GPUs    = 1
 request_memory  = 8GB
-+MaxRuntime     = 300000
 
-queue
+requirements    = (TARGET.Arch == "X86_64") && (TARGET.OpSys == "LINUX") && (TARGET.Disk >= RequestDisk) && (TARGET.Memory >= RequestMemory) && (TARGET.GPUs >= RequestGPUs) && ((TARGET.FileSystemDomain == MY.FileSystemDomain) || (TARGET.HasFileTransfer))
+
+rank            = (GPUs_Capability * 100000) + GPUs_GlobalMemoryMb
+
+# MUST stay under 86400s (24h) — every GPU node in this pool refuses longer
+# jobs in its own START expression. The previous value of 300000 matched
+# nothing anywhere, so the job could sit idle forever. Use --resume if a run
+# ever does hit this.
++MaxRuntime     = 86000
+
+# NOT submitted to the hep-hx3-batch H100/H200 pool. Those nodes are containers
+# with no /vols, no shared home and no CVMFS, so initialdir, the micromamba env
+# and the HDF5 input are all invisible there — see condor/tune_hx3.sub, which
+# stages everything in via file transfer instead.
+
+queue seed in $(seeds)

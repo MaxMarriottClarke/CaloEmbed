@@ -1,0 +1,108 @@
+# Systematic raw-CLUE baseline tune on d5, MOPSO + stratified high-multiplicity
+# event selection. Supersedes configs/tune.yaml (first-N-files-in-filename-order
+# selection, wide unstructured bounds, no feasibility cap) and the never-run
+# configs/tune_d5_strat.yaml.
+#
+# Usage:
+#   caloembed-tune --config configs/tune_raw_d5_strat.yaml
+#   caloembed-tune --config configs/tune_raw_d5_strat.yaml --resume
+#
+# Three-seed run (independent swarms over the SAME event set — select_seed is
+# pinned below so only the swarm varies):
+#   condor_submit condor/tune.sub seeds=3
+
+pipeline: raw
+
+data:
+  dir: /vols/cms/mm1221/cms/Data/d5/100k_mix/hdf5
+
+  # Each file in this production holds ~100 events at one fixed n_cp, so
+  # sampling whole files by n_cp is how the multiplicity mix gets controlled.
+  # Weighted hard: the raw baseline is easy to over-fit to low-multiplicity
+  # events, and those are not what the embedding comparison hinges on. One file
+  # of n_cp=3 keeps a low-multiplicity foothold for variety.
+  # (configs/tune.yaml's first-50-files read gave {3:13, 4:10, 5:9, 6:8, 7:6, 2:4}
+  #  — tilted toward the easy end.)
+  select_by_ncp:
+    3:  100    #  1 file
+    5:  800    #  8 files
+    6: 1500    # 15 files
+    7: 2200    # 22 files
+                # → 4600 events / 46 files
+  # Pinned explicitly. Left unset this defaults to mopso.seed, which would make
+  # every seed in a multi-seed run see a DIFFERENT event set and confound swarm
+  # stochasticity with event-set variation.
+  select_seed: 42
+
+output:
+  dir: results/param_tuning/raw_d5_strat
+
+clustering:
+  backend: auto       # auto → gpu cuda > cpu openmp > cpu serial
+  ppbin: 128
+  block_size: 1024
+  device_id: 0
+
+metrics:
+  min_lc: 3
+
+# Bounds re-centred on the feasible region of results/param_tuning/raw_noPU_d5_10k
+# (the 31 of 61 front points with penalized_ratio <= 10), with headroom:
+#   observed feasible: dc .01-1.81  rhoc .10-3.03  do 1.89-12.5  dm 1.98-29.7  z .10-.31
+# Box volume is ~80x smaller than configs/tune.yaml at the same 40 particles.
+#
+# log: true searches log10(param). These span 3 decades and MOPSO samples its
+# box uniformly, so under the old linear bounds almost nothing below dc=0.5 was
+# ever tried — yet there is a real feasible mode at dc->0 (density collapses to
+# the LC's own energy, so rhoc seeds on energy alone and dm does the linking)
+# that produced the old front's best min_efficiency of 0.75. Bounds and defaults
+# stay in LINEAR units here; only the swarm's coordinates are logarithmic.
+parameters:
+  dc:
+    lower:   0.01
+    upper:   5.0
+    default: 1.1784    # previous working point
+    log:     true
+  rhoc:
+    lower:   0.05
+    upper:  10.0
+    default: 2.2580
+    log:     true
+  do:
+    lower:   0.5
+    upper:  20.0
+    default: 3.9951
+    log:     true
+  dm:
+    lower:   0.5
+    upper:  30.0
+    default: 2.5715
+    log:     true
+  z_scale:             # z weight in weighted_chebyshev; x/y fixed at 1.0
+    lower:   0.1       # physical floor — z below this is not meaningful
+    upper:   0.5       # feasible front never exceeded 0.31
+    default: 0.1
+    # linear: only half a decade, log buys nothing
+
+mopso:
+  n_particles:          40
+  n_iterations:         60
+  seed:                 42
+  inertia_weight:      0.5
+  cognitive_coefficient: 1.5
+  social_coefficient:   2.0
+  topology: lower_weighted_crowding_distance
+  initial_position: random
+
+objectives:
+  under_cluster_penalty: 1000.0
+
+  # Mean penalised ratio above this => the point is reported as worst-possible
+  # purity AND efficiency, so any feasible point dominates it and it can never
+  # reach the Pareto front. Kills the over-fragmentation corner that occupied
+  # 30 of the 61 points in the previous front (pen_ratio 100-143, min_eff ~0.12).
+  #
+  # Note this constrains BOTH failure modes: with under_cluster_penalty=1000 an
+  # under-clustered event contributes ~144, so roughly 6% of events merging CPs
+  # also trips the cap. That is intended — under-clustering is fatal here.
+  ratio_cap: 10.0

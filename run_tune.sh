@@ -2,9 +2,10 @@
 # Run caloembed-tune — works both interactively and as a condor job.
 #
 # Usage:
-#   ./run_tune.sh                                  # uses configs/tune.yaml
-#   ./run_tune.sh --config configs/tune.yaml
-#   ./run_tune.sh --config configs/tune.yaml --resume
+#   ./run_tune.sh                                          # configs/tune_raw_d5_strat.yaml
+#   ./run_tune.sh --config configs/tune_raw_d5_strat.yaml
+#   ./run_tune.sh --config configs/tune_raw_d5_strat.yaml --seed 43
+#   ./run_tune.sh --config configs/tune_raw_d5_strat.yaml --resume
 
 set -eo pipefail
 
@@ -54,4 +55,11 @@ echo "GPU backend verified working."
 echo ""
 
 # ── run ──────────────────────────────────────────────────────────────────────
-caloembed-tune --config configs/tune.yaml "$@"
+# The default is only applied when no arguments were given at all — appending
+# "$@" after a hard-coded --config would pass the flag twice and rely on
+# argparse taking the last one.
+ARGS=("$@")
+if [[ ${#ARGS[@]} -eq 0 ]]; then
+    ARGS=(--config configs/tune_raw_d5_strat.yaml)
+fi
+exec caloembed-tune "${ARGS[@]}"

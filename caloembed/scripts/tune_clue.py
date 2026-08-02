@@ -13,6 +13,14 @@ Objectives (3), aggregated over N pre-loaded events:
   penalized_ratio  (minimize)  mean of per-event penalised n_reco/n_sim
                                ratio>=1: score=ratio; ratio<1: score=1+penalty*(1-ratio)
 
+A point whose mean penalised ratio exceeds objectives.ratio_cap is reported as
+infeasible (worst purity and efficiency) so it can never reach the Pareto front
+— see _make_objective.
+
+Parameters may be searched in log10 space by setting 'log: true' on them in the
+config. Bounds and defaults stay in linear units; only the swarm's internal
+coordinates are logarithmic, and pareto_front.parquet is always linear.
+
 Usage:
   caloembed-tune --config configs/tune.yaml
   caloembed-tune --config configs/tune.yaml --output results/tune_run2
@@ -67,6 +75,15 @@ def _penalised_ratio(ratio: float, penalty: float) -> float:
     return 1.0 + penalty * (1.0 - ratio)
 
 
+def _to_linear(x: np.ndarray, log_mask: list[bool]) -> np.ndarray:
+    """Map a swarm position back to linear parameter units."""
+    lin = np.asarray(x, dtype=float).copy()
+    for i, is_log in enumerate(log_mask):
+        if is_log:
+            lin[i] = 10.0 ** lin[i]
+    return lin
+
+
 def _fmt_duration(seconds: float) -> str:
     # prints time in appropriate format
     if seconds < 60:
@@ -85,11 +102,15 @@ def _make_objective(
     device_id: int,
     min_lc: int,
     penalty: float,
+    ratio_cap: float = float("inf"),
+    log_mask: list[bool] | None = None,
 ):
     """Build the CLUE evaluation closure over pre-loaded events."""
 
+    mask = log_mask or [False] * 5
+
     def evaluate(x: np.ndarray) -> list[float]:
-        dc, rhoc, do, dm, z_scale = (float(v) for v in x)
+        dc, rhoc, do, dm, z_scale = (float(v) for v in _to_linear(x, mask))
 
         max_scores: list[float] = []
         min_effs: list[float] = []
@@ -135,10 +156,19 @@ def _make_objective(
             ratio = len(purity["reco_id"]) / ev.n_truth_cp if ev.n_truth_cp > 0 else 0.0
             pen_ratios.append(_penalised_ratio(ratio, penalty))
 
+        mean_ratio = float(np.mean(pen_ratios))
+        if mean_ratio > ratio_cap:
+            # Infeasible. Report the worst possible purity and efficiency so
+            # that any feasible point dominates this one and it can never enter
+            # the Pareto front — but keep the true ratio in the third slot, so
+            # the swarm still sees a downhill direction back into feasibility
+            # instead of a flat plateau.
+            return [1.0, 0.0, mean_ratio]
+
         return [
             float(np.mean(max_scores)),
             float(np.mean(min_effs)),
-            float(np.mean(pen_ratios)),
+            mean_ratio,
         ]
 
     return evaluate
@@ -153,6 +183,9 @@ def main(argv=None):
     parser.add_argument("--data",    help="Override data.dir from config")
     parser.add_argument("--output",  help="Override output.dir from config")
     parser.add_argument("--backend", help="Override clustering.backend from config")
+    parser.add_argument("--seed",    type=int,
+                        help="Override mopso.seed (swarm only — data.select_seed is untouched, "
+                             "so a multi-seed run keeps the same event set)")
     parser.add_argument("--resume",  action="store_true", help="Resume from checkpoint")
     args = parser.parse_args(argv)
 
@@ -165,6 +198,18 @@ def main(argv=None):
         cfg["output"]["dir"] = args.output
     if args.backend:
         cfg["clustering"]["backend"] = args.backend
+    if args.seed is not None:
+        cfg["mopso"]["seed"] = args.seed
+        # data.select_seed is deliberately NOT touched: varying it too would
+        # confound swarm stochasticity with event-set variation. Configs used
+        # for multi-seed runs must set select_seed explicitly, since it
+        # otherwise defaults to mopso.seed.
+        if "select_by_ncp" in cfg["data"] and "select_seed" not in cfg["data"]:
+            raise SystemExit(
+                "--seed with select_by_ncp requires data.select_seed to be set "
+                "explicitly in the config, otherwise each seed would tune on a "
+                "different event set."
+            )
 
     data_cfg    = cfg["data"]
     clue_cfg    = cfg["clustering"]
@@ -177,13 +222,27 @@ def main(argv=None):
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    min_lc  = metrics_cfg.get("min_lc", 3)
-    penalty = obj_cfg.get("under_cluster_penalty", 1000.0)
+    min_lc    = metrics_cfg.get("min_lc", 3)
+    penalty   = obj_cfg.get("under_cluster_penalty", 1000.0)
+    ratio_cap = obj_cfg.get("ratio_cap", float("inf"))
 
     param_names   = list(params_cfg.keys())
+    log_mask      = [bool(params_cfg[p].get("log", False)) for p in param_names]
     lb            = [params_cfg[p]["lower"]   for p in param_names]
     ub            = [params_cfg[p]["upper"]   for p in param_names]
     default_point = [params_cfg[p]["default"] for p in param_names]
+
+    # The swarm searches log10 space for any parameter flagged 'log: true'; the
+    # objective closure and the exported front convert back to linear units.
+    # Search-space names carry the log10_ prefix so the raw patatune history
+    # CSVs can't be mistaken for linear values.
+    # float() casts are load-bearing: patatune.MOPSO.check_types rejects
+    # numpy scalars, and np.log10 returns np.float64.
+    search_names = [f"log10_{p}" if lg else p for p, lg in zip(param_names, log_mask)]
+    search_lb    = [float(np.log10(v)) if lg else float(v) for v, lg in zip(lb, log_mask)]
+    search_ub    = [float(np.log10(v)) if lg else float(v) for v, lg in zip(ub, log_mask)]
+    search_dflt  = [float(np.log10(v)) if lg else float(v)
+                    for v, lg in zip(default_point, log_mask)]
 
     patatune.Randomizer.rng = np.random.default_rng(mopso_cfg["seed"])
     patatune.Logger.setLevel("WARNING")
@@ -229,7 +288,8 @@ def main(argv=None):
     print(f"  {len(events)} events in {time.perf_counter() - t0:.1f}s")
 
     objective = patatune.ElementWiseObjective(
-        [_make_objective(events, backend, block_size, device_id, min_lc, penalty)],
+        [_make_objective(events, backend, block_size, device_id, min_lc, penalty,
+                         ratio_cap=ratio_cap, log_mask=log_mask)],
         num_objectives=3,
         directions=["minimize", "maximize", "minimize"],
         objective_names=["max_purity_score", "min_efficiency", "penalized_ratio"],
@@ -240,15 +300,15 @@ def main(argv=None):
 
     mopso = patatune.MOPSO(
         objective=objective,
-        lower_bounds=lb,
-        upper_bounds=ub,
-        param_names=param_names,
+        lower_bounds=search_lb,
+        upper_bounds=search_ub,
+        param_names=search_names,
         num_particles=n_particles,
         inertia_weight=mopso_cfg["inertia_weight"],
         cognitive_coefficient=mopso_cfg["cognitive_coefficient"],
         social_coefficient=mopso_cfg["social_coefficient"],
         initial_particles_position=mopso_cfg["initial_position"],
-        default_point=default_point,
+        default_point=search_dflt,
         topology=mopso_cfg["topology"],
     )
 
@@ -258,6 +318,10 @@ def main(argv=None):
         "pipeline":      pipeline,
         "data_dir":      data_dir,
         "n_events":      len(events),
+        # Recorded so caloembed-eval-front can rebuild this exact tuning file
+        # set and sample a validation set that excludes it.
+        "select_by_ncp": select_by_ncp,
+        "select_seed":   data_cfg.get("select_seed", mopso_cfg["seed"]) if select_by_ncp else None,
         "backend":       backend,
         "n_particles":   n_particles,
         "n_iterations":  n_iterations,
@@ -266,8 +330,10 @@ def main(argv=None):
         "lower_bounds":  lb,
         "upper_bounds":  ub,
         "default_point": default_point,
+        "log_params":    [p for p, lg in zip(param_names, log_mask) if lg],
         "min_lc":        min_lc,
         "penalty":       penalty,
+        "ratio_cap":     ratio_cap,
     }
     (output_dir / "config.json").write_text(json.dumps(run_cfg, indent=2))
     print(f"Config snapshot: {output_dir}/config.json")
@@ -331,7 +397,7 @@ def main(argv=None):
     rows = []
     for p in pareto:
         orig = np.ravel(p.fitness) * directions
-        row = {n: float(v) for n, v in zip(param_names, p.position)}
+        row = {n: float(v) for n, v in zip(param_names, _to_linear(p.position, log_mask))}
         row["max_purity_score"] = float(orig[0])
         row["min_efficiency"]   = float(orig[1])
         row["penalized_ratio"]  = float(orig[2])

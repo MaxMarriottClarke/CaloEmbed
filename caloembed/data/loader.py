@@ -93,7 +93,7 @@ def iter_hdf5_files(file_paths, max_events: int = -1):
                 return
 
 
-def select_files_by_n_cp(dir_path, n_events_per_ncp: dict, seed: int = 0):
+def select_files_by_n_cp(dir_path, n_events_per_ncp: dict, seed: int = 0, exclude=None):
     """Randomly pick whole HDF5 files to hit target event counts per n_cp bucket.
 
     Relies on each file in the d5 100k_mix production having a single,
@@ -101,10 +101,18 @@ def select_files_by_n_cp(dir_path, n_events_per_ncp: dict, seed: int = 0):
     verified by scanning all 1000 files). Only one event per file is read to
     determine its bucket, so this is cheap even over the full directory.
     Requested counts are rounded up to whole files.
+
+    Args:
+        exclude: iterable of paths to drop from the pool before sampling. Use
+                 this to build a validation set disjoint from a tuning set —
+                 a different `seed` alone does not guarantee disjointness.
     """
     files = sorted(Path(dir_path).glob("*.h5"))
+    excluded = {Path(p).resolve() for p in (exclude or ())}
     by_ncp: dict[int, list[Path]] = {}
     for fp in files:
+        if fp.resolve() in excluded:
+            continue
         with h5py.File(fp, "r") as f:
             n_cp = int(f["event/n_cp"][0])
         by_ncp.setdefault(n_cp, []).append(fp)

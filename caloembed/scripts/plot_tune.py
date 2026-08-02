@@ -112,8 +112,10 @@ def _plot_convergence(history_dir: Path, out_path: Path):
     for f in files:
         it = int(f.stem.replace("iteration", ""))
         df = pd.read_csv(f)
-        # Drop any repeated header rows that patatune may write
-        df = df[pd.to_numeric(df["dc"], errors="coerce").notna()].astype(float)
+        # Drop any repeated header rows that patatune may write. Keyed on the
+        # first column rather than "dc" — with log-space sampling the parameter
+        # columns are named log10_dc etc. in these raw history files.
+        df = df[pd.to_numeric(df[df.columns[0]], errors="coerce").notna()].astype(float)
         if df.empty:
             continue
         iters.append(it)
@@ -198,8 +200,13 @@ def main(argv=None):
     if parquet_path.exists():
         df = pd.read_parquet(parquet_path)
     elif csv_path.exists():
+        # patatune writes this one in the swarm's own coordinates, so undo any
+        # log-space sampling to match what pareto_front.parquet would contain.
         df = pd.read_csv(csv_path)
-        df = df[pd.to_numeric(df["dc"], errors="coerce").notna()].astype(float)
+        df = df[pd.to_numeric(df[df.columns[0]], errors="coerce").notna()].astype(float)
+        for col in [c for c in df.columns if c.startswith("log10_")]:
+            df[col[len("log10_"):]] = 10.0 ** df[col]
+        df = df.drop(columns=[c for c in df.columns if c.startswith("log10_")])
     else:
         raise FileNotFoundError(f"No pareto_front.parquet or checkpoint/pareto_front.csv in {results_dir}")
 
