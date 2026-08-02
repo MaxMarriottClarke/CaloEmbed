@@ -1,0 +1,41 @@
+# HTCondor submit file for building the portable CLUEstering fat binary.
+#
+#   condor_submit condor/build_clustering.sub
+#
+# Why this is not just run on the submit node any more: the login nodes put a
+# 16 GiB cgroup limit on the user slice (/sys/fs/cgroup/user.slice/user-*.slice/
+# memory.max), and nvcc's 'cicc' frontend needs more than that to compile the
+# single alpaka CUDA translation unit for four architectures at once. It fits
+# for ARCHS="60;70;86" and gets SIGKILLed as soon as sm_90 is added, with a
+# misleading "'cicc' died due to signal 9" and no mention of memory. 48GB here
+# is comfortable headroom.
+#
+# No GPU is requested — nvcc cross-compiles, and nothing is executed. This also
+# keeps the job off the contended GPU slots.
+#
+# Must stay OFF the hep-hx3-batch H100/H200 pool: those nodes are containers
+# with no /vols and no shared home, so neither micromamba nor the repo is
+# visible there. Not setting +HX3 is sufficient — the legacy nodes' START
+# requires TARGET.HX3 =!= true and the HX3 nodes require it to be true, so the
+# two pools are mutually exclusive.
+
+universe        = vanilla
+executable      = build_clustering.sh
+initialdir      = /vols/cms/mm1221/cms/CaloEmbed
+
+log             = logs/condor/build_clustering_$(ClusterId).log
+output          = logs/condor/build_clustering_$(ClusterId).$(ProcId).out
+error           = logs/condor/build_clustering_$(ClusterId).$(ProcId).err
+
+# The legacy pool rations memory by core: its START expression enforces
+# RequestMemory <= 12085 * RequestCpus, so 64GB needs at least 6 CPUs. 8 gives
+# headroom and lets ninja build the four non-CUDA targets in parallel.
+request_CPUs    = 8
+request_memory  = 64GB
+request_disk    = 20GB
+
+# These nodes also refuse anything over 3h (TARGET.MaxRuntime <= 10800), which
+# is far more than the ~20 min this build needs.
++MaxRuntime     = 10800
+
+queue

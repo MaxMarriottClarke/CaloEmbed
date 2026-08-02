@@ -1,0 +1,71 @@
+# HTCondor submit file for raw-CLUE MOPSO tuning on the hep-hx3-batch H100/H200
+# pool.
+#
+# Stage the payload FIRST (once per code/config/data change):
+#   ./make_hx3_bundle.sh
+#
+# Then:
+#   condor_submit condor/tune_hx3.sub                     # 1 job, seed 42
+#   condor_submit condor/tune_hx3.sub seeds="42 43 44"    # 3 independent swarms
+#
+# Why this exists separately from condor/tune.sub: the hx3 nodes are containers
+# with no /vols, no shared $HOME and no CVMFS, so initialdir, micromamba and the
+# HDF5 input are all invisible there. Everything is shipped in over file
+# transfer instead. condor/tune.sub remains the right file for the legacy
+# lxb/lxc GPU nodes, which do have the shared filesystem.
+#
+# Results come back as results/param_tuning/raw_d5_strat_hx3_s<seed>/.
+
+universe        = vanilla
+executable      = run_tune_hx3.sh
+arguments       = $(seed) $(config) $(extra_args)
+initialdir      = /vols/cms/mm1221/cms/CaloEmbed
+
+if ! defined config
+  config        = configs/tune_raw_d5_strat.yaml
+endif
+if ! defined stage
+  stage         = /vols/cms/mm1221/hx3stage
+endif
+if ! defined seeds
+  seeds         = 42
+endif
+if ! defined extra_args
+  extra_args    =
+endif
+
+should_transfer_files   = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files    = $(stage)/payload.tar.gz, $(stage)/data
+
+# run_tune_hx3.sh writes the tuner's output here, in scratch; remap it back into
+# the results tree. Without the remap Condor would drop the directory into the
+# repo root.
+transfer_output_files   = tune_out_s$(seed)
+transfer_output_remaps  = "tune_out_s$(seed) = results/param_tuning/raw_d5_strat_hx3_s$(seed)"
+
+log             = logs/condor/tune_hx3_$(ClusterId).log
+output          = logs/condor/tune_hx3_$(ClusterId).$(ProcId).out
+error           = logs/condor/tune_hx3_$(ClusterId).$(ProcId).err
+
+# Without these, a file-transfer job's stdout/stderr are held on the execute
+# node and only shipped back when it exits — so a 13h tune would show nothing
+# at all until it finished, including the per-iteration progress lines and the
+# GPU verification. Streaming writes them to the AP as they are produced.
+stream_output   = True
+stream_error    = True
+
+request_CPUs    = 2
+request_GPUs    = 1
+request_memory  = 16GB
+# Payload (~300MB) + unpacked env (~900MB) + data (~100MB), with headroom.
+request_disk    = 8GB
+
+# Opt in to the hx3 pool. Their START is
+#   (RequestGPUs > 0) && (TARGET.HX3 =?= true) && (TARGET.MaxRuntime < 86400)
+# so both of these are mandatory, and MaxRuntime must be STRICTLY less than
+# 86400 (the legacy nodes accept <=, so 86000 satisfies both).
++HX3            = true
++MaxRuntime     = 86000
+
+queue seed in $(seeds)

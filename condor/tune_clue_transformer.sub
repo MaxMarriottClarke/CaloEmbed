@@ -23,8 +23,16 @@ executable      = run_tune_clue_transformer.sh
 arguments       = --config $(config) $(extra_args)
 initialdir      = /vols/cms/mm1221/cms/CaloEmbed
 
-config          = configs/tune_clue_transformer.yaml
-extra_args      =
+# Defaults only — a plain assignment here would silently win over a
+# command-line `config=...` / `extra_args=...` (condor_submit applies those
+# first, then the submit file overwrites them), so the documented overrides
+# above would be ignored and the job would re-run the default config.
+if ! defined config
+  config        = configs/tune_clue_transformer.yaml
+endif
+if ! defined extra_args
+  extra_args    =
+endif
 
 log             = logs/condor/tune_clue_transformer_$(ClusterId).log
 output          = logs/condor/tune_clue_transformer_$(ClusterId).$(ProcId).out
@@ -45,11 +53,28 @@ request_memory  = 16GB
 # same-named in-file assignment silently overrides command-line overrides.
 # No capability floor: unlike training this job runs fp32 inference plus the
 # pre-built CLUE fat binary, both of which are fine on P100/V100/A6000.
+# This lands on the legacy lxb/lxc/lxdgpu nodes. The larger hep-hx3-batch H100
+# pool is mutually exclusive with them (legacy START requires TARGET.HX3 =!=
+# true; the H100s require TARGET.HX3 is true) and needs an explicit
+# `+HX3 = true` here to opt in. Not enabled, but no longer for the arch reason:
+# build_clustering.sh now compiles sm_90 too. The blocker is that the hx3 nodes
+# are containers with no /vols, no shared $HOME and no CVMFS, so initialdir, the
+# micromamba env and the checkpoints are all invisible there. Moving this job
+# over means staging a payload in the way make_hx3_bundle.sh does for the raw
+# tune — with torch and PyG added, which is why that bundle is slim and this one
+# would not be. See docs/raw-clue-baseline.md.
 requirements    = (TARGET.Arch == "X86_64") && (TARGET.OpSys == "LINUX") && (TARGET.Disk >= RequestDisk) && (TARGET.Memory >= RequestMemory) && (TARGET.GPUs >= RequestGPUs) && ((TARGET.FileSystemDomain == MY.FileSystemDomain) || (TARGET.HasFileTransfer)) && (Machine == $(target_gpu_host:Machine))
 
 # Best-effort preference only — see note above on why this alone won't
 # reliably pick the best free GPU on this pool.
 rank            = (GPUs_Capability * 100000) + GPUs_GlobalMemoryMb
-+MaxRuntime     = 300000
+
+# MUST stay under 86400s (24h) — every GPU node in this pool refuses longer
+# jobs in its own START expression (legacy nodes: MaxRuntime <= 86400, the
+# hep-hx3-batch H100s: MaxRuntime < 86400). The previous value of 300000
+# matched nothing anywhere, so the job sat idle forever no matter which host
+# it was pinned to. 86000 satisfies both forms. The 200k tune took ~8.75h, so
+# this is not a binding limit; use --resume if a run ever does hit it.
++MaxRuntime     = 86000
 
 queue
