@@ -1,0 +1,106 @@
+# HTCondor submit file for the geo_transformer + CLUE physics runs, on CPU.
+#
+# Why CPU: the 12 legacy GPU nodes are the only ones this job can use (the
+# hep-hx3-batch H100s are containers with no /vols, so they can't see the data
+# or the checkpoints) and they are routinely held for days by other users'
+# jobs. Embedding + CLUE measures ~208 ms/event on 4 threads, so the full
+# 99700-event set is only a few core-hours — not worth waiting for a GPU.
+#
+# Why single-core chunks: this pool's partitionable slots are nearly all
+# consumed, and the free remnants are overwhelmingly 1 CPU (332 such slots vs
+# 70 with >=2 CPUs + 8GB at time of writing). A 1-core/3GB job therefore
+# matches ~402 slots instead of ~70. Note the workers' START expression caps
+# non-whole-node jobs at RequestMemory <= 4000 * RequestCpus, so a 1-core job
+# MUST stay under 4GB — and condor rounds RequestMemory up, so 3GB is the
+# safe ask. Measured RSS is ~1.1GB.
+#
+# Each working point is split across 10 file ranges (100 files each, 997
+# total). Merge afterwards with:
+#   caloembed-merge-dataframes --output results/dataframes/d5/<name> \
+#       results/dataframes/d5/chunks/<name>_c*
+#
+# Submit from the repo root:
+#   condor_submit condor/run_clue_transformer_cpu.sub
+
+universe        = vanilla
+executable      = run_clue_transformer.sh
+initialdir      = /vols/cms/mm1221/cms/CaloEmbed
+
+data            = /vols/cms/mm1221/cms/Data/d5/100k_mix_sep/hdf5
+
+# '--device cpu' also tells run_clue_transformer.sh to skip its GPU probe.
+# --backend auto rather than an explicit "cpu openmp": condor's old-style
+# arguments syntax splits on whitespace and ignores quotes, so the two-word
+# backend name would arrive as two arguments. On a GPU-less node probe_backend
+# falls through 'gpu cuda' to 'cpu openmp' anyway.
+arguments       = --run-dir $(rundir) --data $(data) --output results/dataframes/d5/chunks/$(name) --dc $(dc) --rhoc $(rhoc) --do $(do) --dm $(dm) --file-start $(filestart) --max-files 100 --backend auto --device cpu
+
+environment     = "OMP_NUM_THREADS=1"
+
+log             = logs/condor/run_clue_transformer_cpu_$(ClusterId).log
+output          = logs/condor/run_clue_transformer_cpu_$(ClusterId).$(ProcId).$(name).out
+error           = logs/condor/run_clue_transformer_cpu_$(ClusterId).$(ProcId).$(name).err
+
+request_CPUs    = 1
+request_memory  = 3GB
+request_disk    = 1GB
+
+# Microarch pin: the 'caloembed' env is installed on the AVX-512 login node
+# (lx04, x86_64-v4) and something in it — a conda binary, not CLUEstering,
+# which carries no -march flags — emits instructions the older workers lack.
+# Without this every job died with SIGILL ~2s in, during the imports, on both
+# x86_64-v2 (lxa*) and x86_64-v3 (lxb00) nodes. Pinning to v4 matches the
+# machine the env was built and verified on. ~103 v4 slots had free CPUs at
+# time of writing, so this is not a scheduling bottleneck.
+requirements    = (TARGET.Arch == "X86_64") && (TARGET.OpSys == "LINUX") && (TARGET.Microarch == "x86_64-v4")
+
+# 10800 (3h), NOT more: the v4 nodes with real free capacity (lxc00 has 20 free
+# cores, lxfw00/01 four each) run a short queue whose START demands
+# MaxRuntime <= 10800, while the general workers allow <= 172800. Declaring 3h
+# satisfies both, so it strictly widens matching — at 6h nothing matched at all.
+# A chunk is ~10000 events at ~400 ms single-threaded plus a ~5 min torch
+# import, so ~1.3h: comfortably inside the cap.
++MaxRuntime     = 10800
+
+queue name, rundir, dc, rhoc, do, dm, filestart from (
+  transformer_clue_200k_knee_c0, results/training/geo_transformer_v100_200k, 0.097714, 0.010000, 1.101050, 5.000000, 0
+  transformer_clue_200k_knee_c1, results/training/geo_transformer_v100_200k, 0.097714, 0.010000, 1.101050, 5.000000, 100
+  transformer_clue_200k_knee_c2, results/training/geo_transformer_v100_200k, 0.097714, 0.010000, 1.101050, 5.000000, 200
+  transformer_clue_200k_knee_c3, results/training/geo_transformer_v100_200k, 0.097714, 0.010000, 1.101050, 5.000000, 300
+  transformer_clue_200k_knee_c4, results/training/geo_transformer_v100_200k, 0.097714, 0.010000, 1.101050, 5.000000, 400
+  transformer_clue_200k_knee_c5, results/training/geo_transformer_v100_200k, 0.097714, 0.010000, 1.101050, 5.000000, 500
+  transformer_clue_200k_knee_c6, results/training/geo_transformer_v100_200k, 0.097714, 0.010000, 1.101050, 5.000000, 600
+  transformer_clue_200k_knee_c7, results/training/geo_transformer_v100_200k, 0.097714, 0.010000, 1.101050, 5.000000, 700
+  transformer_clue_200k_knee_c8, results/training/geo_transformer_v100_200k, 0.097714, 0.010000, 1.101050, 5.000000, 800
+  transformer_clue_200k_knee_c9, results/training/geo_transformer_v100_200k, 0.097714, 0.010000, 1.101050, 5.000000, 900
+  transformer_clue_200k_cap2_c0, results/training/geo_transformer_v100_200k, 0.123862, 0.010000, 2.273124, 0.949398, 0
+  transformer_clue_200k_cap2_c1, results/training/geo_transformer_v100_200k, 0.123862, 0.010000, 2.273124, 0.949398, 100
+  transformer_clue_200k_cap2_c2, results/training/geo_transformer_v100_200k, 0.123862, 0.010000, 2.273124, 0.949398, 200
+  transformer_clue_200k_cap2_c3, results/training/geo_transformer_v100_200k, 0.123862, 0.010000, 2.273124, 0.949398, 300
+  transformer_clue_200k_cap2_c4, results/training/geo_transformer_v100_200k, 0.123862, 0.010000, 2.273124, 0.949398, 400
+  transformer_clue_200k_cap2_c5, results/training/geo_transformer_v100_200k, 0.123862, 0.010000, 2.273124, 0.949398, 500
+  transformer_clue_200k_cap2_c6, results/training/geo_transformer_v100_200k, 0.123862, 0.010000, 2.273124, 0.949398, 600
+  transformer_clue_200k_cap2_c7, results/training/geo_transformer_v100_200k, 0.123862, 0.010000, 2.273124, 0.949398, 700
+  transformer_clue_200k_cap2_c8, results/training/geo_transformer_v100_200k, 0.123862, 0.010000, 2.273124, 0.949398, 800
+  transformer_clue_200k_cap2_c9, results/training/geo_transformer_v100_200k, 0.123862, 0.010000, 2.273124, 0.949398, 900
+  transformer_clue_500k_knee_c0, results/training/geo_transformer_a6000_500k, 0.242366, 0.010000, 1.176933, 3.776354, 0
+  transformer_clue_500k_knee_c1, results/training/geo_transformer_a6000_500k, 0.242366, 0.010000, 1.176933, 3.776354, 100
+  transformer_clue_500k_knee_c2, results/training/geo_transformer_a6000_500k, 0.242366, 0.010000, 1.176933, 3.776354, 200
+  transformer_clue_500k_knee_c3, results/training/geo_transformer_a6000_500k, 0.242366, 0.010000, 1.176933, 3.776354, 300
+  transformer_clue_500k_knee_c4, results/training/geo_transformer_a6000_500k, 0.242366, 0.010000, 1.176933, 3.776354, 400
+  transformer_clue_500k_knee_c5, results/training/geo_transformer_a6000_500k, 0.242366, 0.010000, 1.176933, 3.776354, 500
+  transformer_clue_500k_knee_c6, results/training/geo_transformer_a6000_500k, 0.242366, 0.010000, 1.176933, 3.776354, 600
+  transformer_clue_500k_knee_c7, results/training/geo_transformer_a6000_500k, 0.242366, 0.010000, 1.176933, 3.776354, 700
+  transformer_clue_500k_knee_c8, results/training/geo_transformer_a6000_500k, 0.242366, 0.010000, 1.176933, 3.776354, 800
+  transformer_clue_500k_knee_c9, results/training/geo_transformer_a6000_500k, 0.242366, 0.010000, 1.176933, 3.776354, 900
+  transformer_clue_500k_cap2_c0, results/training/geo_transformer_a6000_500k, 0.156964, 0.010000, 1.001481, 4.827027, 0
+  transformer_clue_500k_cap2_c1, results/training/geo_transformer_a6000_500k, 0.156964, 0.010000, 1.001481, 4.827027, 100
+  transformer_clue_500k_cap2_c2, results/training/geo_transformer_a6000_500k, 0.156964, 0.010000, 1.001481, 4.827027, 200
+  transformer_clue_500k_cap2_c3, results/training/geo_transformer_a6000_500k, 0.156964, 0.010000, 1.001481, 4.827027, 300
+  transformer_clue_500k_cap2_c4, results/training/geo_transformer_a6000_500k, 0.156964, 0.010000, 1.001481, 4.827027, 400
+  transformer_clue_500k_cap2_c5, results/training/geo_transformer_a6000_500k, 0.156964, 0.010000, 1.001481, 4.827027, 500
+  transformer_clue_500k_cap2_c6, results/training/geo_transformer_a6000_500k, 0.156964, 0.010000, 1.001481, 4.827027, 600
+  transformer_clue_500k_cap2_c7, results/training/geo_transformer_a6000_500k, 0.156964, 0.010000, 1.001481, 4.827027, 700
+  transformer_clue_500k_cap2_c8, results/training/geo_transformer_a6000_500k, 0.156964, 0.010000, 1.001481, 4.827027, 800
+  transformer_clue_500k_cap2_c9, results/training/geo_transformer_a6000_500k, 0.156964, 0.010000, 1.001481, 4.827027, 900
+)

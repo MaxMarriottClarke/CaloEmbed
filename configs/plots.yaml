@@ -2,7 +2,7 @@
 # Add one entry per run under 'runs'. 'label' is optional — falls back to
 # the pipeline name stored in the summary.
 
-output_dir: plots/physics/
+output_dir: plots/physics/transformer_clue/
 
 energy_min: 20
 energy_max: 300
@@ -13,17 +13,27 @@ n_energy_bins: 14
 # ratio_energy_max: 600
 n_ratio_bins: 14
 
+# d5 only: the four chosen geo_transformer working points against the two
+# baselines. 'knee' = max-curvature point on the ratio/purity envelope of that
+# model's MOPSO front; 'cap2' = lowest max_purity_score with penalized_ratio<=2.
 runs:
-  - summary: results/dataframes/d10/cluestering/summary.json
-    label: "d10: CLUEstering (tuned to d5)"
-  - summary: results/dataframes/d10/clue3d/summary.json
-    label: "d10: CLUE3D"
-      #  - summary: results/dataframes/d10/gnn_agglo/summary.json
-      #    label: "d10: GNN"
   - summary: results/dataframes/d5/cluestering/summary.json
-    label: "d5: CLUEstering (tuned to d5)"
+    label: "CLUEstering (raw, tuned to d5)"
   - summary: results/dataframes/d5/clue3d/summary.json
-    label: "d5: CLUE3D"
+    label: "CLUE3D"
+  - summary: results/dataframes/d5/transformer_clue_200k_knee/summary.json
+    label: "Transformer 200k — knee (do=1.10)"
+  - summary: results/dataframes/d5/transformer_clue_200k_cap2/summary.json
+    label: "Transformer 200k — ratio<=2 (do=2.27)"
+  - summary: results/dataframes/d5/transformer_clue_500k_knee/summary.json
+    label: "Transformer 500k — knee (do=1.18)"
+  - summary: results/dataframes/d5/transformer_clue_500k_cap2/summary.json
+    label: "Transformer 500k — ratio<=2 (do=1.00)"
+
+      #  - summary: results/dataframes/d10/cluestering/summary.json
+      #    label: "d10: CLUEstering (tuned to d5)"
+      #  - summary: results/dataframes/d10/clue3d/summary.json
+      #    label: "d10: CLUE3D"
       #  - summary: results/dataframes/d5/gnn_agglo/summary.json
       #    label: "d5: GNN"
 

@@ -1,0 +1,46 @@
+# HTCondor submit file for the geo_transformer + CLUE physics runs.
+#
+# One job per chosen working point (4 total), each running the full d5
+# 100k_mix_sep set (997 files / 99700 events) to produce the dataframes that
+# caloembed-plot overlays. Working points come from the MOPSO fronts in
+# results/param_tuning/transformer_clue{,_500k}_d5 — see docs for how they
+# were picked ("knee" = max-curvature on the ratio/purity envelope,
+# "cap2" = lowest max_purity_score with penalized_ratio <= 2).
+#
+# Submit from the repo root:
+#   condor_submit condor/run_clue_transformer.sub
+
+universe        = vanilla
+executable      = run_clue_transformer.sh
+initialdir      = /vols/cms/mm1221/cms/CaloEmbed
+
+data            = /vols/cms/mm1221/cms/Data/d5/100k_mix_sep/hdf5
+
+arguments       = --run-dir $(rundir) --data $(data) --output results/dataframes/d5/$(name) --dc $(dc) --rhoc $(rhoc) --do $(do) --dm $(dm)
+
+log             = logs/condor/run_clue_transformer_$(ClusterId).log
+output          = logs/condor/run_clue_transformer_$(ClusterId).$(ProcId).$(name).out
+error           = logs/condor/run_clue_transformer_$(ClusterId).$(ProcId).$(name).err
+
+# Same footprint as the tune: torch runtime + model weights, but only one
+# event's embedding held at a time rather than 5000 cached, so 8GB is ample.
+request_CPUs    = 1
+request_GPUs    = 1
+request_memory  = 8GB
+
+# Any GPU in the legacy lxb/lxc/lxdgpu pool will do — this is fp32 inference
+# plus the prebuilt CLUE fat binary, both fine on P100/V100/A6000, and the run
+# is short enough that node quality barely matters. No target_gpu_host pinning:
+# 4 jobs should spread across whatever is free.
+requirements    = (TARGET.Arch == "X86_64") && (TARGET.OpSys == "LINUX") && (TARGET.Disk >= RequestDisk) && (TARGET.Memory >= RequestMemory) && (TARGET.GPUs >= RequestGPUs) && ((TARGET.FileSystemDomain == MY.FileSystemDomain) || (TARGET.HasFileTransfer))
+
+# Must stay under 86400s — every GPU node in this pool refuses longer jobs.
+# ~100k events at O(10 ms/event) is well under an hour; 4h is slack.
++MaxRuntime     = 14400
+
+queue name, rundir, dc, rhoc, do, dm from (
+  transformer_clue_200k_knee, results/training/geo_transformer_v100_200k, 0.097714, 0.010000, 1.101050, 5.000000
+  transformer_clue_200k_cap2, results/training/geo_transformer_v100_200k, 0.123862, 0.010000, 2.273124, 0.949398
+  transformer_clue_500k_knee, results/training/geo_transformer_a6000_500k, 0.242366, 0.010000, 1.176933, 3.776354
+  transformer_clue_500k_cap2, results/training/geo_transformer_a6000_500k, 0.156964, 0.010000, 1.001481, 4.827027
+)

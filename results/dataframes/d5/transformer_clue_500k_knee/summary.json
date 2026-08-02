@@ -1,0 +1,55 @@
+{
+  "run": {
+    "timestamp": "2026-08-02T13:01:54",
+    "git_hash": "137edb4ef0e99cad9c89f2ad71ac395c00e009b0",
+    "output_dir": "results/dataframes/d5/transformer_clue_500k_knee",
+    "merged_from": [
+      "results/dataframes/d5/chunks/transformer_clue_500k_knee_c0",
+      "results/dataframes/d5/chunks/transformer_clue_500k_knee_c1",
+      "results/dataframes/d5/chunks/transformer_clue_500k_knee_c2",
+      "results/dataframes/d5/chunks/transformer_clue_500k_knee_c3",
+      "results/dataframes/d5/chunks/transformer_clue_500k_knee_c4",
+      "results/dataframes/d5/chunks/transformer_clue_500k_knee_c5",
+      "results/dataframes/d5/chunks/transformer_clue_500k_knee_c6",
+      "results/dataframes/d5/chunks/transformer_clue_500k_knee_c7",
+      "results/dataframes/d5/chunks/transformer_clue_500k_knee_c8",
+      "results/dataframes/d5/chunks/transformer_clue_500k_knee_c9"
+    ]
+  },
+  "setup": {
+    "pipeline": "transformer_clue",
+    "n_events": 99700,
+    "n_files": 997,
+    "n_failed": 0,
+    "transformer": {
+      "run_dir": "results/training/geo_transformer_a6000_500k",
+      "data": "/vols/cms/mm1221/cms/Data/d5/100k_mix_sep/hdf5"
+    },
+    "clue": {
+      "dc": 0.242366,
+      "rhoc": 0.01,
+      "do": 1.176933,
+      "dm": 3.776354,
+      "ppbin": 128,
+      "metric": "euclidean",
+      "backend": "cpu openmp"
+    },
+    "thresholds": {
+      "min_lc": 3,
+      "purity_threshold": 0.2,
+      "efficiency_threshold": 0.5
+    }
+  },
+  "results": {
+    "n_reco_objects": 506657,
+    "mean_purity": 0.8855557112602807,
+    "mean_efficiency": 0.9597845601436266,
+    "mean_number_ratio": 1.1362448058461099,
+    "mean_ms": 425.6931660030597
+  },
+  "outputs": {
+    "objects": "results/dataframes/d5/transformer_clue_500k_knee/objects.parquet",
+    "efficiency": "results/dataframes/d5/transformer_clue_500k_knee/efficiency.parquet",
+    "events": "results/dataframes/d5/transformer_clue_500k_knee/events.parquet"
+  }
+}
