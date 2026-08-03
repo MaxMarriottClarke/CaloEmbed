@@ -1,0 +1,55 @@
+{
+  "timestamp": "2026-08-02T07:44:26",
+  "config_file": "repo/configs/tune_raw_d5_strat.yaml",
+  "pipeline": "raw",
+  "data_dir": "/var/lib/condor/execute/dir_7848/data",
+  "n_events": 4600,
+  "select_by_ncp": {
+    "3": 100,
+    "5": 800,
+    "6": 1500,
+    "7": 2200
+  },
+  "select_seed": 42,
+  "backend": "gpu cuda",
+  "n_particles": 40,
+  "n_iterations": 60,
+  "seed": 42,
+  "param_names": [
+    "dc",
+    "rhoc",
+    "do",
+    "dm",
+    "z_scale"
+  ],
+  "lower_bounds": [
+    0.01,
+    0.05,
+    0.5,
+    0.5,
+    0.1
+  ],
+  "upper_bounds": [
+    5.0,
+    10.0,
+    20.0,
+    30.0,
+    0.5
+  ],
+  "default_point": [
+    1.1784,
+    2.258,
+    3.9951,
+    2.5715,
+    0.1
+  ],
+  "log_params": [
+    "dc",
+    "rhoc",
+    "do",
+    "dm"
+  ],
+  "min_lc": 3,
+  "penalty": 1000.0,
+  "ratio_cap": 10.0
+}
