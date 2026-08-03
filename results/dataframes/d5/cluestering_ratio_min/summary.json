@@ -1,0 +1,43 @@
+{
+  "run": {
+    "timestamp": "2026-08-03T08:10:53",
+    "git_hash": "090a6e78d749967bba5cbf21acfa1c3946f29f3a",
+    "output_dir": "results/dataframes/d5/cluestering_ratio_min"
+  },
+  "setup": {
+    "pipeline": "raw",
+    "n_events": 99700,
+    "n_files": 997,
+    "clue": {
+      "dc": 1.0517,
+      "rhoc": 2.2232,
+      "do": 7.5475,
+      "dm": 3.0353,
+      "ppbin": 128,
+      "metric": "weighted_chebyshev",
+      "metric_params": [
+        1.0,
+        1.0,
+        0.1043
+      ],
+      "backend": "cpu openmp"
+    },
+    "thresholds": {
+      "min_lc": 3,
+      "purity_threshold": 0.2,
+      "efficiency_threshold": 0.5
+    }
+  },
+  "results": {
+    "n_reco_objects": 896084,
+    "mean_purity": 0.9398192580159895,
+    "mean_efficiency": 0.9608191202872531,
+    "mean_number_ratio": 2.0087145006447917,
+    "mean_clue_ms": 3.4363015224172515
+  },
+  "outputs": {
+    "objects": "results/dataframes/d5/cluestering_ratio_min/objects.parquet",
+    "efficiency": "results/dataframes/d5/cluestering_ratio_min/efficiency.parquet",
+    "events": "results/dataframes/d5/cluestering_ratio_min/events.parquet"
+  }
+}

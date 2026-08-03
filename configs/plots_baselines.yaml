@@ -1,0 +1,32 @@
+# Plot config for caloembed-plot: the two clustering baselines on both
+# separations, which is what plots/physics/metrics.pdf has always shown.
+#
+# Split out from configs/plots.yaml when that file was repurposed for the
+# geo_transformer comparison (plots/physics/transformer_clue/) — both figures
+# are current now, so they need one config each.
+#
+#   caloembed-plot configs/plots_baselines.yaml
+
+output_dir: plots/physics/
+
+energy_min: 20
+energy_max: 300
+n_energy_bins: 14
+
+# Total LC energy axis for number ratio (leave out to auto-range from data)
+# ratio_energy_min: 40
+# ratio_energy_max: 600
+n_ratio_bins: 14
+
+# CLUEstering runs at the 'ratio_min' point of the three-seed MOPSO tune
+# (results/param_tuning/raw_d5_strat_hx3_pooled), tuned on d5 and applied
+# unchanged to d10 — the same "tuned to d5" caveat the previous figure carried.
+runs:
+  - summary: results/dataframes/d10/cluestering_ratio_min/summary.json
+    label: "d10: CLUEstering (tuned to d5)"
+  - summary: results/dataframes/d10/clue3d/summary.json
+    label: "d10: CLUE3D"
+  - summary: results/dataframes/d5/cluestering_ratio_min/summary.json
+    label: "d5: CLUEstering (tuned to d5)"
+  - summary: results/dataframes/d5/clue3d/summary.json
+    label: "d5: CLUE3D"

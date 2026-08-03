@@ -8,13 +8,18 @@ data:
 
 clustering:
   backend: auto    # auto → gpu cuda > cpu openmp > cpu serial
-  dc: 1.1784
-  rhoc: 2.2580
-  do: 3.9951
-  dm: 2.5715
+  # 'ratio_min' working point of the three-seed MOPSO tune
+  # (results/param_tuning/raw_d5_strat_hx3_pooled): the lowest penalized_ratio
+  # on the pooled front, chosen on the held-out validation columns rather than
+  # the tuning ones. Supersedes dc=1.1784 rhoc=2.2580 do=3.9951 dm=2.5715 z=0.1,
+  # which is dominated on validation.
+  dc: 1.0517
+  rhoc: 2.2232
+  do: 7.5475
+  dm: 3.0353
   ppbin: 128
   metric: weighted_chebyshev
-  metric_params: [1.0, 1.0, 0.1]   
+  metric_params: [1.0, 1.0, 0.1043]   # z_scale from the same front point
   block_size: 1024
   device_id: 0
 
